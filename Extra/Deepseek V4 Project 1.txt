@@ -1,0 +1,450 @@
+Deepseek V4
+
+# B1 Builders Programme — Project Strategy & Analysis
+
+## Executive Summary
+
+Your Problem One idea is **excellent** for the B1 submission. It's a real-world problem with clear pain points, measurable impact, and it maps perfectly to the **"team/organisational use"** project requirement. Below I break down everything: idea validation, architecture, prototype plan, testing strategy, and a suggestion for your second (individual-use) project.
+
+---
+
+## 1. Is This Idea OK? — Validation
+
+**Short answer: Yes, this is a strong submission idea.** Here's why it maps well to B1 criteria:
+
+| B1 Criterion | How Your Project Maps |
+|---|---|
+| **Practical building ability** | Full-stack web app: CRUD for students, AI integration for report generation, email delivery |
+| **Effective AI use** | LLM transforms instructor's rough notes → polished parent email + internal report. This is *not* a toy use of AI; it's a genuine productivity multiplier. |
+| **Clear thinking & process** | The problem is well-scoped and the workflow mirrors existing manual process — easy to explain and demo. |
+| **Multi-user, shared resources** | Multiple instructors, shared student database, shared class schedules — perfect fit for "team/organisational use." |
+| **Measurable impact** | Reduce 5-8 min/student to ~1 min/student. At 6 students × 5 classes/day = ~2.5 hours saved/week. |
+
+**Potential concern:** The brief says *"Do not include sensitive or private data in your project submission."* Use **synthetic/fake student data** for the prototype. Make this explicit in your README.
+
+---
+
+## 2. Suggested Flow & Architecture
+
+### 2.1 User Journey
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  INSTRUCTOR WORKFLOW (post-class)                                │
+│                                                                  │
+│  ┌──────────┐    ┌──────────┐    ┌──────────┐    ┌─────────────┐ │
+│  │ 1. Open  │───▶│ 2. Select│───▶│ 3. Jot   │───▶│ 4. AI       │ │
+│  │   App    │    │  Class   │    │  Notes   │    │  Generates  │ │
+│  │          │    │  & Students│   │ (3-5     │    │  Report +   │ │
+│  │          │    │          │    │  bullets) │    │  Email      │ │
+│  └──────────┘    └──────────┘    └──────────┘    └──────┬──────┘ │
+│                                                        │        │
+│  ┌──────────┐    ┌──────────┐    ┌──────────┐          │        │
+│  │ 7. Done  │◀───│ 6. Send  │◀───│ 5. Review│◀─────────┘        │
+│  │          │    │  Email   │    │  & Edit  │                    │
+│  └──────────┘    └──────────┘    └──────────┘                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 2.2 System Architecture
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                        FRONTEND (Browser)                         │
+│  ┌──────────┐  ┌───────────┐  ┌────────────┐  ┌───────────────┐ │
+│  │ Dashboard│  │ Class     │  │ AI Report  │  │ Student       │ │
+│  │ (today's │  │ Selector  │  │ Generator  │  │ History View  │ │
+│  │ classes) │  │           │  │ + Editor   │  │               │ │
+│  └──────────┘  └───────────┘  └────────────┘  └───────────────┘ │
+└──────────────────────────────┬───────────────────────────────────┘
+                               │ REST API
+┌──────────────────────────────▼───────────────────────────────────┐
+│                        BACKEND (Python/Node)                       │
+│  ┌──────────┐  ┌───────────┐  ┌────────────┐  ┌───────────────┐ │
+│  │ Routes   │  │ AI Service│  │ Email      │  │ Report        │ │
+│  │ /api/*   │  │ (LLM call)│  │ Service    │  │ Generator     │ │
+│  └──────────┘  └───────────┘  └────────────┘  └───────────────┘ │
+└──────────────────────────────┬───────────────────────────────────┘
+                               │
+┌──────────────────────────────▼───────────────────────────────────┐
+│                      DATA LAYER                                   │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────────┐│
+│  │ SQLite DB    │  │ (Future:     │  │ AI Prompts / Templates   ││
+│  │ (prototype)  │  │ Google       │  │ (stored in JSON/config)  ││
+│  │              │  │ Sheets API)  │  │                          ││
+│  └──────────────┘  └──────────────┘  └──────────────────────────┘│
+└──────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 3. Prototype Plan (2 Hours)
+
+### Tech Stack Recommendation
+
+| Layer | Technology | Why |
+|---|---|---|
+| **Frontend** | Plain HTML + CSS + vanilla JS (or Alpine.js / htmx) | Fastest to prototype. No build step. |
+| **Backend** | Python + Flask (or FastAPI) | Quick API setup, easy OpenAI SDK integration |
+| **Database** | SQLite | Zero config, file-based, perfect for prototype. Migrate to Google Sheets API or Supabase later. |
+| **AI** | OpenAI API (gpt-4o-mini) or Claude API | Cheap, fast, good at structured text generation |
+| **Email** | Mock/console output for prototype; Resend or SendGrid for real |
+
+> **Why not tkinter?** B1 explicitly requires *"web apps that include frontend and backend components."* A local GUI disqualifies it.  
+> **Why not Google Sheets as DB?** For the prototype, SQLite is *faster to set up*. You can mention in your README that production would use Google Sheets API (to integrate with existing workflow) or a proper DB. This shows thoughtful architectural reasoning.
+
+### 2-Hour Build Plan
+
+```
+Minute 0-15   : Scaffold Flask project, SQLite schema, sample data
+Minute 15-35  : Build API endpoints (students, classes, reports CRUD)
+Minute 35-55  : Build frontend: class selector + notes input form
+Minute 55-75  : Integrate OpenAI: prompt design + report generation endpoint
+Minute 75-95  : Frontend: review/edit screen + mock email preview
+Minute 95-115 : Polish, error handling, README
+Minute 115-120: Record demo video
+```
+
+### Database Schema (SQLite — Minimal Viable)
+
+```sql
+-- Instructors
+CREATE TABLE instructors (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT NOT NULL
+);
+
+-- Students
+CREATE TABLE students (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    parent_email TEXT,
+    age INTEGER,
+    current_level TEXT,
+    enrolled_since DATE
+);
+
+-- Classes / Sessions
+CREATE TABLE classes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date DATE NOT NULL,
+    instructor_id INTEGER,
+    subject TEXT,
+    project_name TEXT,
+    FOREIGN KEY (instructor_id) REFERENCES instructors(id)
+);
+
+-- Class-Student attendance
+CREATE TABLE class_students (
+    class_id INTEGER,
+    student_id INTEGER,
+    attended BOOLEAN DEFAULT 1,
+    PRIMARY KEY (class_id, student_id),
+    FOREIGN KEY (class_id) REFERENCES classes(id),
+    FOREIGN KEY (student_id) REFERENCES students(id)
+);
+
+-- AI-Generated Reports
+CREATE TABLE reports (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    class_id INTEGER,
+    student_id INTEGER,
+    instructor_raw_notes TEXT,          -- the 3-5 bullet points
+    ai_generated_report TEXT,           -- polished report
+    ai_generated_email TEXT,            -- parent-facing email
+    skills_observed TEXT,               -- extracted skills
+    difficulty_rating INTEGER,          -- 1-5
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (class_id) REFERENCES classes(id),
+    FOREIGN KEY (student_id) REFERENCES students(id)
+);
+```
+
+---
+
+## 4. AI Prompt Design
+
+This is the core of your project. The prompt structure is what you'll showcase for B1's *"how you prompted the AI"* requirement.
+
+### System Prompt Template
+
+```python
+SYSTEM_PROMPT = """You are an assistant for instructors at an enrichment center 
+teaching students aged 9-18. Given raw instructor notes about a student's 
+performance in a class, you produce:
+
+1. A concise internal report (for other instructors) covering:
+   - What was covered today
+   - Skills demonstrated
+   - Areas of difficulty (rated 1-5)
+   - Recommended next steps / project
+   
+2. A warm, parent-friendly email update covering:
+   - What their child worked on today
+   - A specific positive observation
+   - One area for growth (framed constructively)
+   - What's coming next
+
+Student context:
+- Name: {student_name}
+- Age: {student_age}
+- Current Level: {student_level}
+- Today's Subject: {subject}
+- Project: {project_name}
+
+Format your response as JSON:
+{
+  "internal_report": "...",
+  "parent_email": "...",
+  "skills_observed": ["skill1", "skill2"],
+  "difficulty_rating": 3,
+  "next_project_suggestion": "..."
+}
+"""
+```
+
+This demonstrates **structured prompting** — you're not just asking the AI to "write something," you're engineering the output format for programmatic use. This is exactly what B1 evaluators want to see.
+
+---
+
+## 5. Testing & Validation Strategy
+
+### For the Prototype Demo
+
+| Test | How | Success Criteria |
+|---|---|---|
+| **Happy path** | Select a class, enter 3 bullets, generate report | Report and email appear within 3 seconds |
+| **Edge case: empty notes** | Submit blank notes | Graceful error message, no crash |
+| **Edge case: very short notes** | "good job" | AI still generates structured output |
+| **Multi-student** | Generate reports for 3 students in one class | All reports generated, no data mix-up |
+| **Edit before send** | Modify AI-generated text | Edits save, email preview updates |
+
+### For the B1 Interview (What to Show)
+
+1. **Live demo** the happy path in under 2 minutes
+2. **Show the prompt** and explain *why* you structured it that way
+3. **Show one failure/iteration** — e.g., "At first the AI wrote overly generic reports, so I added specific context (age, level, project) to the prompt and the quality improved dramatically."
+4. **Explain what YOU built vs what AI built.** Be honest. This is a key B1 expectation.
+
+---
+
+## 6. Project Two — Suggestion (Individual Use)
+
+You need a second project for **"individual use."** Here's a suggestion that complements Problem One and is similarly scoped for a 2-hour prototype:
+
+### Idea: **"DevLog AI" — Personal Developer Journal**
+
+**Problem:** As a developer (or 42 student), you work on multiple projects, learn new things daily, and need to track what you did, what you learned, and what to do next. Current solutions (Notion, Obsidian, plain text) require manual structuring.
+
+**Solution:** A personal web app where you:
+1. Write (or dictate) a stream-of-consciousness log entry at the end of a coding session
+2. AI structures it into: what was accomplished, what was learned, blockers, next steps
+3. Auto-tags entries by project/technology
+4. Can search/query past entries semantically ("What was that bug with CORS headers last week?")
+5. Generates a weekly summary
+
+**Why this pairs well with Project One:**
+- Same core pattern: **rough notes → AI → structured output**
+- Different audience: individual vs. team
+- Shows range: one solves an organizational problem, one solves a personal productivity problem
+- You can reuse the same tech stack (Flask + SQLite + OpenAI), which is smart for a 2-hour timebox
+- Demonstrates semantic search/RAG (retrieval-augmented generation) on past entries
+
+### Alternative Individual Project Ideas
+
+| Idea | Quick Pitch |
+|---|---|
+| **42 Piscine Progress Tracker** | Track your piscine/cursus progress, AI analyzes weak areas |
+| **AI Cover Letter Generator** | Paste job description + your resume → tailored cover letter |
+| **Meal Prep AI** | Input dietary needs + available ingredients → weekly meal plan + shopping list |
+
+---
+
+## 7. Project Structure (for GitHub Submission)
+
+Following the B1-required folder structure:
+
+```
+enrichment-report-ai/          # Project 1: Team/Org Use
+├── README.md
+├── LICENSE
+├── .gitignore
+├── requirements.txt           # Python deps
+├── src/
+│   ├── app.py                 # Flask entry point
+│   ├── models.py              # SQLAlchemy/sqlite3 models
+│   ├── routes/
+│   │   ├── api_students.py
+│   │   ├── api_classes.py
+│   │   └── api_reports.py
+│   ├── services/
+│   │   ├── ai_service.py      # OpenAI integration
+│   │   └── email_service.py   # Email generation/sending
+│   └── templates/
+│       ├── index.html
+│       ├── class_view.html
+│       └── report_editor.html
+├── tests/
+│   └── test_reports.py
+├── docs/
+│   └── ai-dev/
+│       └── README.md          # AI usage log
+├── data/
+│   ├── seed.sql               # Sample data
+│   └── prompts.json           # Prompt templates
+└── assets/
+    └── screenshots/
+
+devlog-ai/                     # Project 2: Individual Use
+├── README.md
+├── LICENSE
+├── .gitignore
+├── requirements.txt
+├── src/
+│   ├── app.py
+│   ├── models.py
+│   ├── routes/
+│   ├── services/
+│   │   ├── ai_service.py
+│   │   └── search_service.py  # Semantic search
+│   └── templates/
+├── tests/
+├── docs/
+│   └── ai-dev/
+│       └── README.md
+├── data/
+└── assets/
+```
+
+---
+
+## 8. Key AI Dev Log (docs/ai-dev/README.md) — What to Document
+
+This is the document B1 evaluators will scrutinize. Here's what to include:
+
+### AI Tools Used
+```
+- Claude 4 (via API): Report generation, email drafting, prompt refinement
+- ChatGPT (web): Brainstorming architecture, debugging Flask routes
+- GitHub Copilot: Boilerplate HTML/CSS, SQL schema generation
+```
+
+### Key Prompts
+Document 3-5 actual prompts you used and why:
+
+```
+Prompt 1: "Given these instructor notes about a 12-year-old robotics student..."
+  → Result: Too verbose, missed skill assessment
+  → Refinement: Added JSON output format constraint + skill taxonomy
+  → Final prompt: [show the system prompt from Section 4]
+```
+
+### Reflection
+```
+What worked:
+- JSON-constrained output made parsing reliable
+- Including student context (age, level) in prompt dramatically improved relevance
+
+What failed:
+- First attempt used streaming; introduced partial JSON parsing bugs
+  → Switched to non-streaming for prototype reliability
+- Initial prompt generated emails in formal tone
+  → Added "warm, parent-friendly" tone instruction
+
+What I'd improve:
+- Add few-shot examples in the prompt for consistency
+- Implement RAG on past reports for continuity
+- Voice input via Web Speech API
+```
+
+---
+
+## 9. Quick-Start Prototype Code (Skeleton)
+
+Here's a minimal Flask app to get you started in the first 15 minutes:
+
+```python
+# src/app.py
+from flask import Flask, render_template, request, jsonify
+import sqlite3
+import os
+from openai import OpenAI
+
+app = Flask(__name__)
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+# ── Database init ──────────────────────────────────────────────
+def init_db():
+    conn = sqlite3.connect("data/enrichment.db")
+    conn.executescript(open("data/seed.sql").read())
+    conn.close()
+
+# ── Routes ─────────────────────────────────────────────────────
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+@app.route("/api/generate-report", methods=["POST"])
+def generate_report():
+    data = request.json
+    raw_notes = data.get("notes", "")
+    student_name = data.get("student_name", "")
+    student_age = data.get("student_age", "")
+    subject = data.get("subject", "")
+    
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT.format(
+                student_name=student_name,
+                student_age=student_age,
+                student_level=data.get("level", ""),
+                subject=subject,
+                project_name=data.get("project", "")
+            )},
+            {"role": "user", "content": f"Instructor notes:\n{raw_notes}"}
+        ],
+        response_format={"type": "json_object"}
+    )
+    
+    import json
+    result = json.loads(response.choices[0].message.content)
+    
+    # Save to SQLite
+    conn = sqlite3.connect("data/enrichment.db")
+    conn.execute(
+        "INSERT INTO reports (student_id, instructor_raw_notes, ai_generated_report, ai_generated_email) VALUES (?, ?, ?, ?)",
+        (data.get("student_id"), raw_notes, result["internal_report"], result["parent_email"])
+    )
+    conn.commit()
+    conn.close()
+    
+    return jsonify(result)
+
+if __name__ == "__main__":
+    init_db()
+    app.run(debug=True)
+```
+
+---
+
+## 10. Final Recommendations
+
+| Priority | Action |
+|---|---|
+| **Now** | Scaffold the Flask app with SQLite. Get the core AI generation working first. |
+| **Next** | Build the minimal frontend (class selector → notes form → result display). |
+| **Then** | Add email preview + edit capability. Polish UI enough to screenshot. |
+| **Finally** | Write the `docs/ai-dev/README.md` — **this is as important as the code for B1.** |
+
+**For the video (≤5 min each):**
+- 1 min: State the problem (instructor pain)
+- 1.5 min: Demo the happy path
+- 1 min: Show the prompt and explain your iterations
+- 1 min: Show a before/after of AI output quality
+- 0.5 min: What you'd improve
+
+---
+
+Would you like me to elaborate on any specific section — the prompt engineering, the database migration path (prototype SQLite → production Google Sheets API), or flesh out the second project (DevLog AI)?

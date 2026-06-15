@@ -1,0 +1,320 @@
+Claude Opus 4.6:
+
+# B1 Builders: Project 1 — Enrichment Center AI Lesson Reporter
+
+## ✅ Verdict: This Idea is Excellent
+
+It's a strong fit for **Project 2 (team/organizational use)** because:
+- Multiple instructors share student records (shared resources)
+- Solves a real, measurable pain point (5-8 min/student × multiple students = hours saved)
+- AI integration is **core** to the product, not bolted on
+- You can demo a clear before/after workflow improvement
+- It maps to a real business you understand (strong for the interview)
+
+> **Mapping to B1 requirements:** This is your "team/department/organisational use" project. You'll still need a second "individual use" project — we can discuss that separately.
+
+---
+
+## 🏗️ Recommended Tech Stack (2-Hour Prototype)
+
+| Layer | Choice | Why |
+|-------|--------|-----|
+| **Frontend** | Single HTML page + vanilla JS | Zero build tools, fast to prototype, still counts as a web app |
+| **Backend** | Python **Flask** | Minimal boilerplate, fast API routes, you already know Python |
+| **Database** | **SQLite** (file-based) | Zero setup, SQL-capable, easy to seed with test data |
+| **AI** | **OpenAI API** (GPT-4o-mini) or **Claude API** | Report generation from raw notes |
+| **Voice Input** | Browser **Web Speech API** | Free, built into Chrome/Edge, no server-side setup |
+| **Email** | Preview/copy mode (no actual send) | For prototype; show the email draft, don't need Gmail integration |
+
+<details>
+<summary><strong>Why not Google Sheets / Tkinter / CSV?</strong></summary>
+
+| Option | Problem |
+|--------|---------|
+| **Google Sheets as DB** | Requires OAuth2 setup, service account keys, API quotas — burns 30+ min of your 2 hours on config. Save for v2. |
+| **CSV** | No concurrent access, no relational queries, messy for multi-student data. Fine for export, bad as primary store. |
+| **Tkinter** | Not a web app — B1 explicitly requires "web apps with frontend and backend components." Disqualified. |
+| **Local JS only** | No backend = doesn't meet B1 requirement. You need server-side routes. |
+
+**SQLite is the sweet spot**: zero config, relational, and you can always add a "Export to CSV" or "Sync to Google Sheet" button later to show extensibility.
+
+</details>
+
+---
+
+## 📐 Application Flow
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                   INSTRUCTOR FLOW                        │
+│                                                          │
+│  1. Open web app → Select student from dropdown          │
+│                         │                                │
+│  2. Enter raw notes ◄───┤ Type in textarea               │
+│                         └ OR click 🎤 for voice input    │
+│                         │                                │
+│  3. Click [Generate Report]                              │
+│         │                                                │
+│         ▼                                                │
+│  ┌──────────────────────────────────────┐                │
+│  │  Backend sends to AI API with:       │                │
+│  │  • Raw notes                         │                │
+│  │  • Student context (level, age,      │                │
+│  │    past projects, skill targets)     │                │
+│  │  • System prompt (report template)   │                │
+│  └──────────┬───────────────────────────┘                │
+│             ▼                                            │
+│  4. AI returns structured output:                        │
+│     ├─ 📋 Lesson Entry (for student record)              │
+│     ├─ 📧 Parent Email (friendly, informative)           │
+│     ├─ 🔄 Handover Notes (for next instructor)           │
+│     └─ 💡 Suggested Next Project/Activity                │
+│                         │                                │
+│  5. Instructor reviews & edits in preview panes          │
+│                         │                                │
+│  6. Click [Save] → stored in SQLite                      │
+│     Click [Copy Email] → clipboard for sending           │
+│                                                          │
+│  BONUS VIEWS:                                            │
+│  • Student History tab (past entries)                    │
+│  • Generate Progress Report (from all entries)           │
+│  • Generate Testimonial (from all entries)               │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🗄️ Data Model
+
+```sql
+-- students table
+CREATE TABLE students (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    age INTEGER,
+    level TEXT,              -- e.g., "Beginner", "Intermediate", "Advanced"
+    parent_email TEXT,
+    skills_acquired TEXT,    -- JSON array: ["loops", "functions", "OOP"]
+    projects_done TEXT,      -- JSON array: ["Calculator", "Snake Game"]
+    notes TEXT               -- general notes about learning style, etc.
+);
+
+-- instructors table
+CREATE TABLE instructors (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+-- lesson_entries table (core table)
+CREATE TABLE lesson_entries (
+    id INTEGER PRIMARY KEY,
+    student_id INTEGER REFERENCES students(id),
+    instructor_id INTEGER REFERENCES instructors(id),
+    date TEXT DEFAULT (date('now')),
+    raw_notes TEXT,              -- instructor's quick input
+    generated_report TEXT,       -- AI-generated lesson summary
+    parent_email_draft TEXT,     -- AI-generated email
+    handover_notes TEXT,         -- AI-generated for next instructor
+    skills_covered TEXT,         -- JSON array
+    difficulty TEXT,             -- "easy" / "moderate" / "challenging"
+    project_name TEXT,
+    suggested_next TEXT,         -- AI suggestion
+    created_at TEXT DEFAULT (datetime('now'))
+);
+```
+
+---
+
+## 🧠 AI Prompt Design (Key to the Product)
+
+This is the **system prompt** that makes the AI output structured and useful:
+
+```python
+SYSTEM_PROMPT = """You are a teaching assistant for a coding/enrichment center. 
+Given an instructor's raw lesson notes about a student, generate the following:
+
+CONTEXT PROVIDED:
+- Student name, age, level, past projects, skills acquired
+- Instructor's raw notes from today's lesson
+
+OUTPUT (return as JSON):
+{
+  "lesson_report": "2-3 paragraph summary of what happened in class, 
+                     what the student worked on, how they performed, 
+                     and any observations.",
+  "parent_email": "Friendly email to parent summarizing the lesson. 
+                    Tone: warm, encouraging, specific. 
+                    Mention what child did, what they learned, 
+                    and what's coming next. Keep under 150 words.",
+  "handover_notes": "Bullet points for the next instructor: 
+                      where the student left off, what to continue, 
+                      any issues or things to watch for.",
+  "skills_covered": ["skill1", "skill2"],
+  "difficulty_rating": "easy|moderate|challenging",
+  "suggested_next": "Recommendation for next project or activity 
+                      based on student's level and progress."
+}
+
+Be specific, not generic. Reference the actual work described in the notes.
+"""
+```
+
+---
+
+## 📁 Project Structure (B1-Compliant)
+
+```
+enrichment-reporter/
+├── README.md
+├── LICENSE
+├── .gitignore
+├── requirements.txt          # flask, openai, python-dotenv
+├── src/
+│   ├── app.py                # Flask app, routes
+│   ├── database.py           # SQLite init, queries
+│   ├── ai_service.py         # AI API calls, prompt management
+│   ├── templates/
+│   │   └── index.html        # Single-page app (Jinja2 template)
+│   └── static/
+│       ├── style.css
+│       └── app.js            # Voice input, fetch calls, UI logic
+├── tests/
+│   ├── test_ai_service.py    # Mock API tests
+│   ├── test_database.py      # CRUD tests
+│   └── test_routes.py        # Endpoint tests
+├── docs/
+│   └── ai-dev/
+│       └── README.md         # AI tools used, prompts, reflections
+├── scripts/
+│   └── seed_data.py          # Populate DB with sample students
+├── data/
+│   └── sample_students.json  # Sample data for seeding
+└── Extra/
+    └── chat_logs/            # All AI chat session logs
+```
+
+---
+
+## ⏱️ 2-Hour Build Plan
+
+| Time | Task | Details |
+|------|------|---------|
+| **0:00 – 0:15** | Setup | Create repo, install Flask + openai, init SQLite, create tables, seed 5 sample students |
+| **0:15 – 0:45** | Backend | 4 Flask routes: `GET /students`, `GET /student/<id>/history`, `POST /generate`, `POST /save` |
+| **0:45 – 1:15** | Frontend | Single HTML page: student dropdown, notes textarea, voice button, generate button, 3 preview panes (report, email, handover), save button |
+| **1:15 – 1:35** | AI Integration | Wire up `ai_service.py` with system prompt, test with real notes, tune output format |
+| **1:35 – 1:50** | Polish & Test | Test full flow end-to-end, add student history view, handle edge cases |
+| **1:50 – 2:00** | Documentation | Write README.md, docs/ai-dev/README.md, commit everything |
+
+---
+
+## 🧪 How to Test the Product
+
+### Level 1: Functional Testing (Must Pass)
+
+| # | Test Case | How to Verify |
+|---|-----------|---------------|
+| 1 | Student list loads | Open app → dropdown shows 5 seeded students |
+| 2 | Voice input works | Click 🎤 → speak → text appears in notes box |
+| 3 | AI generates report | Enter notes → click Generate → 3 panes populate |
+| 4 | Output is student-specific | Generated text references the student's name, age, level |
+| 5 | Save persists | Save entry → refresh → check student history shows it |
+| 6 | History loads | Select student → view past entries in chronological order |
+| 7 | Empty notes handled | Click Generate with no notes → shows error message |
+
+### Level 2: Quality Testing (Should Pass)
+
+| # | Test Case | How to Verify |
+|---|-----------|---------------|
+| 8 | Parent email tone is warm | Read generated email — no jargon, encouraging, mentions specifics |
+| 9 | Handover notes are actionable | Another instructor can read bullet points and know what to do |
+| 10 | Skill detection matches notes | If notes mention "learned loops", skills_covered includes "loops" |
+| 11 | Suggested next project is appropriate | Matches student's level (not too easy, not too hard) |
+
+### Level 3: Scenario Testing (Demo Scenarios)
+
+```
+SCENARIO A: "Quick post-class entry"
+─────────────────────────────────────
+Instructor: Sarah
+Student: Jason, age 12, Intermediate level
+Raw notes: "jason did scratch maze game today. struggled with 
+  broadcast messages but got it after I showed example. 
+  finished level 1. needs to do level 2 next time. 
+  was excited, asked if he can add sound effects."
+
+Expected: AI generates detailed report, warm parent email 
+mentioning the maze game and enthusiasm, handover notes 
+about starting level 2 and broadcast messages.
+
+SCENARIO B: "Covering for another instructor"  
+─────────────────────────────────────────────
+New instructor reads handover notes from Scenario A,
+then records their own entry for the next lesson.
+
+SCENARIO C: "Generate progress report"
+─────────────────────────────────────────
+After 5+ entries, instructor clicks "Generate Progress Report"
+→ AI summarizes all entries into a term report.
+```
+
+### Level 4: Automated Tests (for the `tests/` folder)
+
+```python
+# tests/test_ai_service.py
+def test_generate_returns_valid_json():
+    """AI response parses into expected keys."""
+    result = generate_report(mock_student, mock_notes)
+    assert "lesson_report" in result
+    assert "parent_email" in result
+    assert "handover_notes" in result
+    assert "skills_covered" in result
+
+# tests/test_database.py  
+def test_save_and_retrieve_entry():
+    """Saved lesson entry is retrievable by student ID."""
+    save_entry(student_id=1, data=mock_entry)
+    history = get_student_history(student_id=1)
+    assert len(history) >= 1
+    assert history[-1]["project_name"] == "Scratch Maze Game"
+
+# tests/test_routes.py
+def test_students_endpoint():
+    """GET /students returns list of students."""
+    response = client.get("/students")
+    assert response.status_code == 200
+    assert len(response.json) > 0
+```
+
+---
+
+## 🔑 Key Decisions to Document (for `docs/ai-dev/README.md`)
+
+| Decision Point | Options Considered | Choice Made | Rationale |
+|---|---|---|---|
+| Database | Google Sheets, CSV, SQLite, PostgreSQL | SQLite | Zero config, relational, sufficient for prototype. Google Sheets can be a v2 export target. |
+| Frontend framework | React, Vue, Vanilla JS | Vanilla JS + Jinja2 | 2-hour constraint; no build step needed |
+| AI model | GPT-4o, GPT-4o-mini, Claude | GPT-4o-mini | Cheap, fast, good enough for structured text generation |
+| Voice input | Whisper API, Web Speech API | Web Speech API | Free, client-side, no extra API key needed |
+| Email delivery | Gmail API, SendGrid, Copy-to-clipboard | Copy-to-clipboard | Avoids OAuth complexity for prototype |
+
+---
+
+## 🔮 Future Enhancements (Mention in Demo Video)
+
+Showing you've thought beyond the prototype scores well in the interview:
+
+1. **Google Sheets sync** — bidirectional sync for existing workflow compatibility
+2. **Telegram bot** — instructor sends voice note → bot transcribes → generates report
+3. **Multi-tenant auth** — login per instructor, role-based access
+4. **Parent portal** — parents view reports directly instead of email
+5. **Analytics dashboard** — skill progression graphs per student
+6. **Batch processing** — enter notes for entire class at once
+
+---
+
+## 💡 Quick Tip for B1 Submission
+
+Since the deadline was June 15 and interviews start June 16, **keep your chat logs** from building this. Save every AI conversation (with me, with Copilot, etc.) into the `Extra/chat_logs/` folder. The programme explicitly asks for this — it shows your process, which matters more than a polished result.
+
+Want me to now scaffold the actual code (app.py, index.html, database.py, etc.) so you can start building?
