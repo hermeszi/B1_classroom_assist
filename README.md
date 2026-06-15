@@ -1,4 +1,4 @@
-# class_assist (corporate use)
+# class_assist (team/organisational use)
  
 ## Overview
  
