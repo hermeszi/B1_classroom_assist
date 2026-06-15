@@ -13,7 +13,8 @@
 
 ---
 ## Demo
-- (screenshots / GIF / <=5 min video here)
+- <img width="800" height="800" alt="B1_class_assist" src="https://github.com/user-attachments/assets/429508fd-51d4-4915-89cb-a7f15c0701de" />
+
 
 ---
 ## Technology Stack
