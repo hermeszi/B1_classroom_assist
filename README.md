@@ -1,4 +1,4 @@
-# class_assist
+# class_assist (corporate use)
  
 ## Overview
  
