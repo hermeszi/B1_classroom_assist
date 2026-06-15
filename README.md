@@ -12,7 +12,7 @@
 ---
  
 ## Demo
-Instructor flow, start to finish:
+[Youtube Link:](https://youtu.be/MUnVXtHYfys)
 1. Select one or more students (multiple for group/sibling lessons).
 2. Enter the worksheet and rough notes — by typing or by voice (mic button, Web Speech API).
 3. **Generate** → AI returns an editable lesson summary, skills practised, next lesson, and internal notes.
