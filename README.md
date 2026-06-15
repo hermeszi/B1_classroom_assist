@@ -24,7 +24,7 @@
 
 ---
 ## Installation
-1. `cp .env.example .env` and add your ANTHROPIC_API_KEY
+1. `cp .env.example .env` and add your XXX_API_KEY
 2. `docker compose up --build`  (or `pip install -r requirements.txt` + `uvicorn src.main:app --reload`)
 3. Open http://localhost:8001
 
