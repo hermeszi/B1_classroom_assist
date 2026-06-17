@@ -1,17 +1,18 @@
-# class_assist (team/organisational use)
+# 👩🏻‍💻 class_assist (team/organisational use)
  
 ## Overview
  
-### Problem
+### 📚Problem
 - **Who is affected?** Instructors and parents at a small youth coding enrichment centre. Students (~9–16) attend on a flexible "pass" system  (different days, different instructors) so continuity depends entirely on written records.
   
 - **What is the issue?** After every class an instructor writes a per-student update that (a) tells parents what happened, (b) lets the next instructor take over, and (c) builds a progress record for promotion and testimonials. In the current Google-Sheets workflow the parent-facing summary gets written, but the structured fields — skills practised, next lesson, internal handover notes — are almost always left blank because filling them by hand is tedious. Each write-up runs ~5–8 minutes; across a class it becomes a long admin tail after every session.
-### Outcome
+  
+### 📝Outcome
 - A full-stack web app: the instructor enters a worksheet name and a few rough notes, and AI produces a parent-ready lesson summary in the centre's house style **and** auto-fills the three fields instructors normally skip (skills practised, next lesson, internal notes). Entries are saved per student with a live history view.
 - **Estimated impact:** a ~5–8 min/student write-up drops to roughly a minute of review-and-edit, and the structured progress fields (promotions and testimonials later rely on) actually get filled meaningfully.
 ---
  
-## Demo
+## ✎ᝰDemo
 [Youtube Link:](https://youtu.be/MUnVXtHYfys)
 1. Select one or more students (multiple for group/sibling lessons).
 2. Enter the worksheet and rough notes — by typing or by voice (mic button, Web Speech API).
@@ -24,7 +25,7 @@
  
 ---
  
-## Technology Stack
+## 💡Technology Stack
 ### Frontend
 - HTML + vanilla JavaScript (no build step), Tailwind via CDN.
 - Web Speech API for optional voice note capture.
@@ -49,7 +50,8 @@ Select student(s) → enter worksheet + notes (type or speak) → Generate → r
 - `tests/` — contract tests (`pytest`).
 - `docs/ai-dev/` — AI usage writeup.
 - `Extra/` — full AI chat-session logs.
-## Data & safety
+  
+## ⚠️  Data & safety
 The committed seed uses synthetic students only. Real records live in a gitignored local database and are never committed. No passwords or surnames are sent to the AI provider.
 
 
