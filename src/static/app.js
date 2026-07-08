@@ -429,10 +429,16 @@ function renderHistory(entries, studentId) {
 // ── Generate ──────────────────────────────────────────────────────────────────
 
 function showError(msg) {
-  $('error-msg').hidden = false;
+  const el = $('error-msg');
+  el.classList.remove('hidden');
+  el.classList.add('flex');
   $('error-text').textContent = msg;
 }
-function hideError() { $('error-msg').hidden = true; }
+function hideError() {
+  const el = $('error-msg');
+  el.classList.add('hidden');
+  el.classList.remove('flex');
+}
 
 $('btn-generate').addEventListener('click', async () => {
   const ids = [...selectedLessonIds()];
@@ -445,7 +451,9 @@ $('btn-generate').addEventListener('click', async () => {
   hideError();
   $('results').hidden = true;
   $('post-save-feedback').hidden = true;
-  $('loading').hidden = false;
+  const loadingEl = $('loading');
+  loadingEl.classList.remove('hidden');
+  loadingEl.classList.add('flex');
   $('btn-generate').disabled = true;
   $('save-confirm').hidden = true;
 
@@ -484,7 +492,8 @@ $('btn-generate').addEventListener('click', async () => {
   } catch (err) {
     showError(err.message);
   } finally {
-    $('loading').hidden = true;
+    loadingEl.classList.add('hidden');
+    loadingEl.classList.remove('flex');
     $('btn-generate').disabled = false;
   }
 });
