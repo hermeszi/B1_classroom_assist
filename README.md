@@ -23,7 +23,8 @@ skip. Each write-up drops from ~5–8 minutes to roughly a minute of review and 
 
 [YouTube demo](https://youtu.be/MUnVXtHYfys)
 
-![Screenshot](https://github.com/user-attachments/assets/429508fd-51d4-4915-89cb-a7f15c0701de)
+<img width="1614" height="1344" alt="image" src="https://github.com/user-attachments/assets/bde322d5-552a-40c0-b04a-d58753c2d37e" />
+
 
 ---
 
