@@ -9,12 +9,16 @@ CREATE TABLE IF NOT EXISTS instructors (
 
 CREATE TABLE IF NOT EXISTS students (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
-  name          TEXT NOT NULL,     -- first / preferred name only
+  name          TEXT NOT NULL,
   age           INTEGER,
-  level         TEXT,              -- e.g. Scratch L1, Scratch L2, Python Beginner
-  scratch_user  TEXT,             -- username ONLY; never store passwords
+  level         TEXT,
+  login         TEXT,              -- platform login/username (Scratch, Python, etc.)
   parent_email  TEXT,
-  profile_notes TEXT              -- siblings, CCA, learning style, goals
+  parent_phone  TEXT,
+  student_email TEXT,
+  student_phone TEXT,
+  profile_notes TEXT,
+  active        INTEGER NOT NULL DEFAULT 1
 );
 
 -- One row per lesson, per student. Group-taught siblings get one row each
@@ -25,6 +29,8 @@ CREATE TABLE IF NOT EXISTS lesson_entries (
   instructor_id    INTEGER REFERENCES instructors(id),
   lesson_date      TEXT NOT NULL DEFAULT (date('now')),
   created_at       TEXT NOT NULL DEFAULT (datetime('now')),
+  title            TEXT,            -- session-level: lesson of the day / topic
+  general_lesson   TEXT,            -- session-level: shared lesson content for all students
   worksheet        TEXT,            -- instructor input, e.g. "Scratch Dino Run"
   raw_notes        TEXT NOT NULL,   -- instructor input: a few rough bullets
   lesson_summary   TEXT,            -- AI: parent-facing narrative (house style)
@@ -33,10 +39,26 @@ CREATE TABLE IF NOT EXISTS lesson_entries (
   internal_notes   TEXT             -- AI: terse handover for next instructor
 );
 
+CREATE TABLE IF NOT EXISTS settings (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS student_feedback (
+  id              INTEGER PRIMARY KEY AUTOINCREMENT,
+  lesson_entry_id INTEGER NOT NULL REFERENCES lesson_entries(id),
+  student_id      INTEGER NOT NULL REFERENCES students(id),
+  token           TEXT NOT NULL UNIQUE,
+  submitted_at    TEXT,
+  rating          INTEGER,
+  comments        TEXT,
+  created_at      TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- synthetic seed (safe to commit + demo)
 INSERT INTO instructors (name) VALUES ('Ming'), ('Wei');
 
-INSERT INTO students (name, age, level, scratch_user, parent_email, profile_notes) VALUES
+INSERT INTO students (name, age, level, login, parent_email, profile_notes) VALUES
   ('Aiden', 11, 'Scratch L2',      'aiden_codes', 'parent1@example.test', 'Loves games; focus drops after ~20 min.'),
   ('Mei',   13, 'Python Beginner', 'mei_dev',     'parent2@example.test', 'Strong logic; rushes syntax. Twin, taught with Lena.'),
   ('Lena',  13, 'Python Beginner', 'lena_dev',    'parent2@example.test', 'Mei''s twin; taught together. Careful, methodical.'),

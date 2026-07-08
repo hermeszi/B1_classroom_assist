@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lesson Feedback</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-md space-y-6">
+
+    <!-- Loading -->
+    <div id="state-loading" class="text-center text-gray-400 text-sm py-10">Loading…</div>
+
+    <!-- Form -->
+    <div id="state-form" class="hidden bg-white rounded-2xl shadow border border-gray-200 p-8 space-y-6">
+      <div>
+        <p class="text-xs font-semibold text-indigo-500 uppercase tracking-wide mb-1">Lesson Feedback</p>
+        <h1 id="lesson-title" class="text-xl font-bold text-gray-800"></h1>
+        <p id="lesson-meta"  class="text-sm text-gray-400 mt-0.5"></p>
+      </div>
+
+      <!-- Star rating -->
+      <div class="space-y-2">
+        <label class="text-sm font-semibold text-gray-700">
+          How was the lesson?
+          <span class="font-normal text-gray-400">(optional)</span>
+        </label>
+        <div class="flex gap-2" id="star-row">
+          <button data-r="1" class="star text-3xl text-gray-300 hover:text-yellow-400 transition leading-none">★</button>
+          <button data-r="2" class="star text-3xl text-gray-300 hover:text-yellow-400 transition leading-none">★</button>
+          <button data-r="3" class="star text-3xl text-gray-300 hover:text-yellow-400 transition leading-none">★</button>
+          <button data-r="4" class="star text-3xl text-gray-300 hover:text-yellow-400 transition leading-none">★</button>
+          <button data-r="5" class="star text-3xl text-gray-300 hover:text-yellow-400 transition leading-none">★</button>
+        </div>
+        <p id="rating-label" class="text-xs text-gray-400 h-4"></p>
+      </div>
+
+      <!-- Comments -->
+      <div class="space-y-1">
+        <label for="fb-comments" class="text-sm font-semibold text-gray-700">
+          Any comments?
+          <span class="font-normal text-gray-400">(optional)</span>
+        </label>
+        <textarea id="fb-comments" rows="4"
+          placeholder="What did you enjoy? What was tricky? Any suggestions for the instructor?"
+          class="w-full rounded-lg border border-gray-300 text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-y"></textarea>
+      </div>
+
+      <button id="btn-submit"
+        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed">
+        Submit Feedback
+      </button>
+      <p id="submit-error" class="text-sm text-red-600 hidden text-center"></p>
+    </div>
+
+    <!-- Already submitted -->
+    <div id="state-done" class="hidden bg-white rounded-2xl shadow border border-gray-200 p-8 text-center space-y-3">
+      <div class="text-5xl">✓</div>
+      <p class="text-gray-700 font-semibold">Feedback already submitted for this lesson.</p>
+      <p class="text-gray-400 text-sm">Thank you!</p>
+    </div>
+
+    <!-- Success -->
+    <div id="state-success" class="hidden bg-white rounded-2xl shadow border border-gray-200 p-8 text-center space-y-4">
+      <div class="text-5xl">🙌</div>
+      <p class="text-indigo-700 font-bold text-xl">Thank you!</p>
+      <p class="text-gray-500 text-sm">Your instructor will see your feedback before the next lesson.</p>
+    </div>
+
+    <!-- Error -->
+    <div id="state-error" class="hidden bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+      <p class="text-red-600 text-sm" id="error-text">This feedback link was not found or has expired.</p>
+    </div>
+
+  </div>
+
+  <script>
+    const LABELS = ['', 'Poor', 'Not great', 'OK', 'Good', 'Excellent!'];
+    const token  = new URLSearchParams(location.search).get('token');
+
+    function show(id) {
+      ['state-loading','state-form','state-done','state-success','state-error']
+        .forEach(s => document.getElementById(s).classList.toggle('hidden', s !== id));
+    }
+
+    if (!token) {
+      show('state-error');
+    } else {
+      let selectedRating = null;
+
+      fetch(`/api/feedback/${token}`)
+        .then(r => r.json().then(d => ({ ok: r.ok, d })))
+        .then(({ ok, d }) => {
+          if (!ok) {
+            document.getElementById('error-text').textContent = d.detail ?? 'Link not found.';
+            show('state-error');
+            return;
+          }
+          if (d.already_submitted) { show('state-done'); return; }
+
+          document.getElementById('lesson-title').textContent = d.worksheet ?? 'Lesson';
+          document.getElementById('lesson-meta').textContent  =
+            [d.student_name, d.lesson_date].filter(Boolean).join(' · ');
+          show('state-form');
+        })
+        .catch(() => show('state-error'));
+
+      // Star rating
+      document.querySelectorAll('.star').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedRating = Number(btn.dataset.r);
+          document.querySelectorAll('.star').forEach((b, i) => {
+            b.classList.toggle('text-yellow-400', i < selectedRating);
+            b.classList.toggle('text-gray-300',   i >= selectedRating);
+          });
+          document.getElementById('rating-label').textContent = LABELS[selectedRating] ?? '';
+        });
+      });
+
+      // Submit
+      document.getElementById('btn-submit').addEventListener('click', async () => {
+        const btn      = document.getElementById('btn-submit');
+        const errEl    = document.getElementById('submit-error');
+        const comments = document.getElementById('fb-comments').value.trim();
+
+        btn.disabled    = true;
+        btn.textContent = 'Submitting…';
+        errEl.classList.add('hidden');
+
+        try {
+          const res = await fetch(`/api/feedback/${token}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rating: selectedRating, comments }),
+          });
+          if (!res.ok) {
+            const d = await res.json();
+            throw new Error(d.detail ?? 'Submission failed');
+          }
+          show('state-success');
+        } catch (err) {
+          errEl.textContent = err.message;
+          errEl.classList.remove('hidden');
+          btn.disabled    = false;
+          btn.textContent = 'Submit Feedback';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
