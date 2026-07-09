@@ -1,5 +1,7 @@
 # CARE — Classroom AI for Reports & Engagement
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 > A self-hosted web app that turns an instructor's rough lesson notes into polished
 > parent-facing summaries, filled-in progress records, and student feedback links —
 > powered by any OpenAI-compatible AI provider.
