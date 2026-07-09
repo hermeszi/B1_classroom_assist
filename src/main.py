@@ -78,6 +78,19 @@ class SettingsRequest(BaseModel):
     system_prompt: str | None = None
 
 
+class UpdateLessonEntryRequest(BaseModel):
+    lesson_date: str | None = None
+    title: str | None = None
+    general_lesson: str | None = None
+    worksheet: str | None = None
+    raw_notes: str | None = None
+    lesson_summary: str | None = None
+    skills_practised: str | None = None
+    next_lesson: str | None = None
+    internal_notes: str | None = None
+    archived: int | None = None
+
+
 class FeedbackRequest(BaseModel):
     rating: int | None = None
     comments: str = ""
@@ -197,6 +210,15 @@ def save_settings(req: SettingsRequest):
 
 
 # ── feedback ──────────────────────────────────────────────────────────────────
+
+@app.put("/api/lessons/{entry_id}")
+def update_lesson_entry(entry_id: int, req: UpdateLessonEntryRequest):
+    entry = database.get_lesson_entry(entry_id)
+    if not entry:
+        raise HTTPException(status_code=404, detail="Lesson entry not found")
+    database.update_lesson_entry(entry_id, req.model_dump(exclude_unset=True))
+    return {"updated": True}
+
 
 @app.post("/api/lessons/{entry_id}/feedback-link", status_code=201)
 def create_feedback_link(entry_id: int):

@@ -56,6 +56,7 @@ def init_db() -> None:
         for col, defn in [
             ("title",          "TEXT"),
             ("general_lesson", "TEXT"),
+            ("archived",       "INTEGER NOT NULL DEFAULT 0"),
         ]:
             if col not in entry_cols:
                 conn.execute(f"ALTER TABLE lesson_entries ADD COLUMN {col} {defn}")
@@ -136,7 +137,7 @@ def get_student_history(student_id: int) -> list[dict]:
         rows = conn.execute(
             """
             SELECT le.id, le.student_id, le.instructor_id, le.lesson_date, le.created_at,
-                   le.title, le.general_lesson,
+                   le.title, le.general_lesson, le.archived,
                    le.worksheet, le.raw_notes, le.lesson_summary, le.skills_practised,
                    le.next_lesson, le.internal_notes,
                    (SELECT token FROM student_feedback
@@ -273,6 +274,21 @@ def get_all_settings() -> dict:
 
 
 # ── feedback ──────────────────────────────────────────────────────────────────
+
+def update_lesson_entry(entry_id: int, fields: dict) -> None:
+    allowed = {
+        "lesson_date", "title", "general_lesson", "worksheet",
+        "raw_notes", "lesson_summary", "skills_practised",
+        "next_lesson", "internal_notes", "archived",
+    }
+    updates = {k: v for k, v in fields.items() if k in allowed}
+    if not updates:
+        return
+    sets = ", ".join(f"{k} = ?" for k in updates)
+    vals = list(updates.values()) + [entry_id]
+    with _connect() as conn:
+        conn.execute(f"UPDATE lesson_entries SET {sets} WHERE id = ?", vals)
+
 
 def get_lesson_entry(entry_id: int) -> dict | None:
     with _connect() as conn:

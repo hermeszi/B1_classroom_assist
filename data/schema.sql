@@ -36,7 +36,8 @@ CREATE TABLE IF NOT EXISTS lesson_entries (
   lesson_summary   TEXT,            -- AI: parent-facing narrative (house style)
   skills_practised TEXT,            -- AI: JSON array string
   next_lesson      TEXT,            -- AI: suggested next project / topic
-  internal_notes   TEXT             -- AI: terse handover for next instructor
+  internal_notes   TEXT,            -- AI: terse handover for next instructor
+  archived         INTEGER NOT NULL DEFAULT 0  -- soft-hide old/irrelevant entries
 );
 
 CREATE TABLE IF NOT EXISTS settings (

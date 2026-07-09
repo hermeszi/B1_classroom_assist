@@ -1,3 +1,139 @@
+// ── System prompt presets ─────────────────────────────────────────────────────
+
+const PROMPT_PRESETS = {
+  general: `You are an AI teaching assistant for a youth enrichment centre in Singapore.
+
+The instructor gives you: student context (name, age, level, profile notes, any prior
+student feedback), an optional lesson topic and shared class description, a
+worksheet / project name, and a few rough notes from today's session.
+You return a structured lesson record in the centre's house style.
+
+RULES
+1. Use ONLY the facts supplied. Never invent achievements, project names,
+   certificates, or contact details.
+2. lesson_summary — 120–220 words. Warm, parent-facing narrative. Name the
+   specific activity or project. Say concretely what the student did, which
+   concepts they practised, and what comes next. Use encouraging, plain language
+   a non-technical parent understands. Rewrite blunt instructor phrasing into
+   constructive terms (e.g. "struggled" → "is working through a tricky concept";
+   "distracted" → "benefited from extra focus time"). Never mention surnames,
+   passwords, grades as numbers, or sensitive data.
+3. skills_practised — concise list of concrete skills evidenced in the notes
+   (e.g. ["variables", "for-loops", "sprite collision", "debugging"]). Return
+   an empty list [] if none are clearly identifiable.
+4. next_lesson — the natural next step implied by where the student stopped
+   (e.g. "Complete Stage 3 — add the score counter and sound effects"). Return
+   "" if unclear from the notes.
+5. internal_notes — terse instructor-to-instructor handover, bullet style.
+   Cover: where the student stopped, what to continue, any technical issues,
+   engagement or focus notes, and anything to watch next session. Not shown
+   to parents or students.
+6. If student feedback (rating / comments) is provided, briefly reflect the
+   student's experience in the summary and flag low ratings (≤ 2) in
+   internal_notes as an engagement note for the next instructor.
+7. If a shared lesson description is provided, weave the class topic into the
+   summary to contextualise what the whole group worked on.
+8. For group / sibling lessons: write the summary specifically for the named
+   student even when notes cover multiple students.
+9. Keep the tone consistent with a professional enrichment centre — friendly,
+   specific, and constructive.
+
+Return STRICT JSON only — no markdown, no prose, no code fences — with EXACTLY
+these four keys:
+{
+  "lesson_summary":   "...",
+  "skills_practised": ["...", "..."],
+  "next_lesson":      "...",
+  "internal_notes":   "..."
+}`,
+
+  primary: `You are an AI teaching assistant for a youth enrichment centre in Singapore,
+writing lesson records for Primary school students (P1–P6, ages 7–12).
+
+The instructor gives you: student context (name, age, level, profile notes, any prior
+student feedback), an optional lesson topic and shared class description, a
+worksheet / project name, and a few rough notes from today's session.
+
+RULES
+1. Use ONLY the facts supplied. Never invent achievements, project names, or details.
+2. lesson_summary — 100–180 words. Warm, encouraging, and very easy to read —
+   parents may not be familiar with the subject. Lead with what the child enjoyed
+   or achieved today. Mention the specific activity by name. Frame all challenges
+   positively (e.g. "Aiden is building patience with debugging" not "struggled").
+   Avoid jargon; when a technical term is necessary, explain it in plain language
+   in brackets. Close with what comes next to build anticipation.
+   Never mention surnames, passwords, scores as grades, or sensitive data.
+3. skills_practised — short list of skills in child-friendly language
+   (e.g. ["logical thinking", "sequencing", "problem-solving", "creativity"]).
+   Return [] if none are clearly identifiable.
+4. next_lesson — what the child will work on next, written to excite them
+   (e.g. "Add sound effects and a high-score counter to the game!").
+   Return "" if unclear.
+5. internal_notes — brief instructor handover (bullet points). Note: exactly
+   where the student stopped, focus / energy level, any technique to try next
+   session, and whether parental follow-up is needed. Not shown to parents.
+6. If student feedback is provided, weave their feelings into the summary warmly
+   ("Aiden said the session was really fun — great to hear!") and flag any low
+   rating (≤ 2) in internal_notes.
+7. Singapore primary context: if the activity connects to the MOE PSLE syllabus
+   or school curriculum, you may briefly note the link (e.g. "This builds the
+   computational thinking skills introduced in P5 Computer Applications").
+8. Keep the tone like a caring, enthusiastic teacher writing to a proud parent —
+   specific, upbeat, and never condescending.
+
+Return STRICT JSON only — no markdown, no prose, no code fences — with EXACTLY
+these four keys:
+{
+  "lesson_summary":   "...",
+  "skills_practised": ["...", "..."],
+  "next_lesson":      "...",
+  "internal_notes":   "..."
+}`,
+
+  secondary: `You are an AI teaching assistant for a tuition or enrichment centre in Singapore,
+writing lesson records for Secondary school students (Sec 1–5, ages 13–17).
+
+The instructor gives you: student context (name, age, level, profile notes, any prior
+student feedback), an optional lesson topic and shared class description, a
+worksheet / project name, and a few rough notes from today's session.
+
+RULES
+1. Use ONLY the facts supplied. Never invent achievements, exam results, or details.
+2. lesson_summary — 130–220 words. Professional but friendly, suitable for parents
+   and students to read. Describe what was covered, which concepts or skills were
+   practised, and the student's progress. Use precise subject language appropriate
+   for the level (O-Level, N-Level, IP, IB, or IGCSE as applicable). Frame
+   weaknesses constructively (e.g. "is consolidating algebraic manipulation" not
+   "can't do algebra"). Mention exam relevance where genuinely applicable.
+   Never mention surnames, passwords, raw marks/grades, or sensitive data.
+3. skills_practised — list of specific academic or technical skills addressed
+   (e.g. ["quadratic equations", "structured essay writing", "exam timing",
+   "hypothesis formation"]). Return [] if unclear.
+4. next_lesson — the logical next topic or revision area, with exam context where
+   relevant (e.g. "Revise Chapter 8 — Chemical Bonding; past-year paper on
+   covalent structures"). Return "" if unclear.
+5. internal_notes — concise bullet-point handover for the next instructor. Include:
+   topics covered and depth reached, gaps or misconceptions to address, exam
+   proximity warnings, engagement and confidence notes, and any follow-up
+   homework or resources recommended. Not shown to parents or students.
+6. Singapore secondary context: reference the syllabus code or exam board where
+   known (e.g. "O-Level E-Math 4048", "O-Level English 1184"). Flag if a student
+   is approaching a major exam (Prelims, O-Levels, N-Levels) within 3 months.
+7. If student feedback is provided, acknowledge the student's perspective in the
+   summary and flag concerns (rating ≤ 2) as a priority in internal_notes.
+8. Tone: respectful, clear, and academic — this student is old enough to read their
+   own report and should feel taken seriously.
+
+Return STRICT JSON only — no markdown, no prose, no code fences — with EXACTLY
+these four keys:
+{
+  "lesson_summary":   "...",
+  "skills_practised": ["...", "..."],
+  "next_lesson":      "...",
+  "internal_notes":   "..."
+}`,
+};
+
 // ── Utilities ─────────────────────────────────────────────────────────────────
 
 function esc(s) {
@@ -58,6 +194,17 @@ document.querySelectorAll('[data-tab]').forEach(btn => {
 // ── Quick Guide ───────────────────────────────────────────────────────────────
 
 const GUIDE_KEY = 'care_guide_dismissed';
+
+function initAbout() {
+  const btn     = $('btn-about');
+  const popover = $('about-popover');
+  if (!btn || !popover) return;
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    popover.classList.toggle('hidden');
+  });
+  document.addEventListener('click', () => popover.classList.add('hidden'));
+}
 
 function initGuide() {
   const guide = $('quick-guide');
@@ -202,6 +349,65 @@ $('settings-provider').addEventListener('change', e => {
 
 // ── Settings ──────────────────────────────────────────────────────────────────
 
+function initPromptControls() {
+  const textarea = $('settings-prompt');
+  const unlock   = $('prompt-unlock');
+  const badge    = $('prompt-badge');
+
+  // Lock / unlock toggle
+  unlock.addEventListener('change', () => {
+    const locked = !unlock.checked;
+    textarea.readOnly = locked;
+    textarea.classList.toggle('opacity-60', locked);
+    textarea.classList.toggle('cursor-not-allowed', locked);
+  });
+
+  // Preset buttons
+  document.querySelectorAll('.prompt-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.preset;
+      if (!PROMPT_PRESETS[key]) return;
+      textarea.value = PROMPT_PRESETS[key];
+      // unlock for review
+      unlock.checked = true;
+      textarea.readOnly = false;
+      textarea.classList.remove('opacity-60', 'cursor-not-allowed');
+      badge.textContent = 'custom';
+      badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-violet-100 text-violet-700';
+      textarea.focus();
+    });
+  });
+
+  // Reset to default
+  $('btn-reset-prompt').addEventListener('click', () => {
+    textarea.value = PROMPT_PRESETS.general;
+    unlock.checked = false;
+    textarea.readOnly = true;
+    textarea.classList.add('opacity-60', 'cursor-not-allowed');
+    badge.textContent = 'will reset on save';
+    badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-100 text-amber-700';
+  });
+}
+
+function setPromptDisplay(customPrompt) {
+  const textarea = $('settings-prompt');
+  const badge    = $('prompt-badge');
+  const unlock   = $('prompt-unlock');
+  if (customPrompt) {
+    textarea.value = customPrompt;
+    badge.textContent = 'custom';
+    badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-violet-100 text-violet-700';
+  } else {
+    textarea.value = PROMPT_PRESETS.general;
+    badge.textContent = 'default (built-in)';
+    badge.className = 'text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-100 text-gray-500';
+  }
+  // Re-engage lock
+  unlock.checked = false;
+  textarea.readOnly = true;
+  textarea.classList.add('opacity-60', 'cursor-not-allowed');
+}
+
 async function loadSettings() {
   try {
     const res = await fetch('/api/settings');
@@ -215,7 +421,7 @@ async function loadSettings() {
     applyProvider(provider, true);
 
     if (s.model) $('settings-model').value = s.model;
-    if (s.system_prompt) $('settings-prompt').value = s.system_prompt;
+    setPromptDisplay(s.system_prompt || null);
 
     const keyStatus = $('api-key-status');
     if (s.api_key_set) {
@@ -246,7 +452,11 @@ $('btn-save-settings').addEventListener('click', async () => {
   const body = {
     api_url: $('settings-api-url').value.trim() || null,
     model:   $('settings-model').value.trim()   || null,
-    system_prompt: $('settings-prompt').value.trim() || null,
+    system_prompt: (() => {
+      const v = $('settings-prompt').value.trim();
+      // Don't persist if it's unchanged from the built-in default
+      return (v && v !== PROMPT_PRESETS.general.trim()) ? v : null;
+    })(),
   };
   const key = $('settings-api-key').value.trim();
   if (key) body.api_key = key;
@@ -746,12 +956,20 @@ function buildStudentCard(s) {
           </div>
           ${s.profile_notes ? `<p class="text-xs text-gray-500 mt-1 line-clamp-2">${esc(s.profile_notes)}</p>` : ''}
         </div>
-        <button class="btn-edit-student text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 p-1.5 rounded-lg transition" title="Edit">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-        </button>
+        <div class="flex items-center gap-1.5 flex-shrink-0">
+          <button class="btn-view-lessons flex items-center gap-1 text-xs font-semibold text-sky-600 bg-sky-50 hover:bg-sky-100 border border-sky-200 px-2.5 py-1.5 rounded-lg transition">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Lessons
+          </button>
+          <button class="btn-edit-student text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 p-1.5 rounded-lg transition" title="Edit student profile">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </button>
+        </div>
       </div>
       <div class="edit-panel hidden mt-4 pt-4 border-t border-gray-100 space-y-3">
         <p class="edit-error hidden text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2"></p>
@@ -814,6 +1032,20 @@ function buildStudentCard(s) {
           </div>
         </div>
       </div>
+
+      <!-- Lesson history panel -->
+      <div class="lessons-panel hidden mt-4 pt-4 border-t border-gray-100">
+        <div class="flex items-center justify-between mb-2.5">
+          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Lesson History</p>
+          <label class="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer select-none">
+            <input type="checkbox" class="toggle-archived w-3.5 h-3.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+            Show archived
+          </label>
+        </div>
+        <div class="lessons-entries space-y-1.5 max-h-96 overflow-y-auto pr-0.5">
+          <p class="text-xs text-gray-400 text-center py-4">Loading…</p>
+        </div>
+      </div>
     </div>
   `;
 
@@ -821,6 +1053,7 @@ function buildStudentCard(s) {
   const editErr   = div.querySelector('.edit-error');
 
   div.querySelector('.btn-edit-student').addEventListener('click', () => {
+    div.querySelector('.lessons-panel').classList.add('hidden');
     editPanel.classList.toggle('hidden');
   });
   div.querySelector('.btn-cancel-edit').addEventListener('click', () => {
@@ -884,7 +1117,210 @@ function buildStudentCard(s) {
     });
   });
 
+  // Lesson history panel
+  const lessonsPanel   = div.querySelector('.lessons-panel');
+  const lessonsEntries = div.querySelector('.lessons-entries');
+  const toggleArchived = div.querySelector('.toggle-archived');
+  let lessonsCache = null;
+  const reRender = () => renderStudentLessonsInCard(lessonsEntries, lessonsCache, toggleArchived.checked, reRender);
+
+  div.querySelector('.btn-view-lessons').addEventListener('click', async () => {
+    if (!lessonsPanel.classList.contains('hidden')) {
+      lessonsPanel.classList.add('hidden');
+      return;
+    }
+    editPanel.classList.add('hidden');
+    lessonsPanel.classList.remove('hidden');
+    if (!lessonsCache) {
+      try {
+        const res = await fetch(`/api/students/${s.id}/history`);
+        lessonsCache = await res.json();
+      } catch {
+        lessonsEntries.innerHTML = '<p class="text-xs text-red-400 text-center py-4">Could not load lessons</p>';
+        return;
+      }
+    }
+    reRender();
+  });
+
+  toggleArchived.addEventListener('change', () => { if (lessonsCache) reRender(); });
+
   return div;
+}
+
+// ── Student lesson history editor ─────────────────────────────────────────────
+
+function renderStudentLessonsInCard(container, entries, showArchived, onRerender) {
+  if (!entries.length) {
+    container.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">No lessons saved yet for this student</p>';
+    return;
+  }
+  const visible = entries.filter(e => showArchived || !e.archived);
+  if (!visible.length) {
+    container.innerHTML = '<p class="text-xs text-gray-400 text-center py-4">All entries archived — tick "Show archived" to view them</p>';
+    return;
+  }
+
+  container.innerHTML = '';
+  visible.forEach(e => {
+    const skillsStr = (() => {
+      if (!e.skills_practised) return '';
+      try {
+        const arr = JSON.parse(e.skills_practised);
+        return Array.isArray(arr) ? arr.join(', ') : String(e.skills_practised);
+      } catch { return String(e.skills_practised); }
+    })();
+
+    const headline = [e.title, e.worksheet].filter(Boolean).join(' · ') || 'Untitled';
+    const preview  = (e.lesson_summary || '').slice(0, 110);
+
+    const item = document.createElement('div');
+    item.className = `border rounded-xl overflow-hidden ${e.archived ? 'border-gray-100 opacity-60' : 'border-gray-200'}`;
+
+    item.innerHTML = `
+      <button class="btn-entry-hdr w-full flex items-center gap-2.5 px-3 py-2.5 text-left hover:bg-gray-50 transition-colors">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs font-semibold text-gray-700">${esc(formatDate(e.lesson_date || e.created_at))}</span>
+            <span class="text-xs text-gray-500 truncate">${esc(headline)}</span>
+            ${e.archived ? '<span class="text-xs bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded font-medium">archived</span>' : ''}
+          </div>
+          ${preview ? `<p class="text-xs text-gray-400 truncate mt-0.5">${esc(preview)}${e.lesson_summary && e.lesson_summary.length > 110 ? '…' : ''}</p>` : ''}
+        </div>
+        <svg class="entry-chev w-4 h-4 text-gray-300 flex-shrink-0 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      <div class="entry-body hidden border-t border-gray-100 bg-gray-50 p-3 space-y-2.5">
+        <p class="entry-err hidden text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-2.5 py-2"></p>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-xs font-medium text-gray-600 block mb-1">Date</label>
+            <input type="date" class="e-date input-field text-xs py-1.5" value="${esc(e.lesson_date || '')}" />
+          </div>
+          <div>
+            <label class="text-xs font-medium text-gray-600 block mb-1">Worksheet / Project</label>
+            <input type="text" class="e-worksheet input-field text-xs py-1.5" value="${esc(e.worksheet || '')}" />
+          </div>
+          <div class="col-span-2">
+            <label class="text-xs font-medium text-gray-600 block mb-1">Lesson Title</label>
+            <input type="text" class="e-title input-field text-xs py-1.5" value="${esc(e.title || '')}" />
+          </div>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-gray-600 block mb-1">📝 Lesson Summary <span class="text-gray-400 font-normal">(parent-facing)</span></label>
+          <textarea class="e-summary input-field text-xs resize-y" rows="5">${esc(e.lesson_summary || '')}</textarea>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-gray-600 block mb-1">🎯 Skills Practised <span class="text-gray-400 font-normal">(comma-separated)</span></label>
+          <input type="text" class="e-skills input-field text-xs py-1.5" value="${esc(skillsStr)}" />
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-xs font-medium text-gray-600 block mb-1">🚀 Next Lesson</label>
+            <input type="text" class="e-next input-field text-xs py-1.5" value="${esc(e.next_lesson || '')}" />
+          </div>
+          <div>
+            <label class="text-xs font-medium text-gray-600 block mb-1">Raw Notes</label>
+            <input type="text" class="e-raw input-field text-xs py-1.5" value="${esc((e.raw_notes || '').replace(/\n/g, ' '))}" />
+          </div>
+        </div>
+        <div>
+          <label class="text-xs font-medium text-gray-600 block mb-1">🔒 Internal Notes <span class="text-gray-400 font-normal">(not shown to parents)</span></label>
+          <textarea class="e-internal input-field text-xs resize-y" rows="2">${esc(e.internal_notes || '')}</textarea>
+        </div>
+        <div class="pt-2 border-t border-gray-200">
+          <label class="text-xs font-medium text-gray-600 block mb-1.5">⭐ Student Feedback</label>
+          <div class="e-feedback-status"></div>
+        </div>
+        <div class="flex items-center gap-2 pt-2 border-t border-gray-200 flex-wrap">
+          <button class="btn-entry-save text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-semibold transition">Save changes</button>
+          <button class="btn-entry-archive text-xs border border-gray-300 hover:bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg font-semibold transition">
+            ${e.archived ? '↩ Unarchive' : '📦 Archive'}
+          </button>
+          <span class="entry-ok hidden text-xs text-emerald-600 font-semibold">✓ Saved!</span>
+        </div>
+      </div>
+    `;
+
+    // Feedback status section
+    renderFeedbackStatus(item.querySelector('.e-feedback-status'), e);
+
+    // Toggle detail
+    const body   = item.querySelector('.entry-body');
+    const chev   = item.querySelector('.entry-chev');
+    item.querySelector('.btn-entry-hdr').addEventListener('click', () => {
+      const open = !body.classList.contains('hidden');
+      body.classList.toggle('hidden', open);
+      chev.style.transform = open ? '' : 'rotate(180deg)';
+    });
+
+    // Save
+    item.querySelector('.btn-entry-save').addEventListener('click', async () => {
+      const errEl = item.querySelector('.entry-err');
+      const okEl  = item.querySelector('.entry-ok');
+      errEl.classList.add('hidden');
+      okEl.classList.add('hidden');
+
+      const skillsList = item.querySelector('.e-skills').value
+        .split(',').map(s => s.trim()).filter(Boolean);
+
+      try {
+        const res = await fetch(`/api/lessons/${e.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lesson_date:      item.querySelector('.e-date').value || null,
+            title:            item.querySelector('.e-title').value.trim() || null,
+            worksheet:        item.querySelector('.e-worksheet').value.trim() || null,
+            lesson_summary:   item.querySelector('.e-summary').value.trim() || null,
+            skills_practised: JSON.stringify(skillsList),
+            next_lesson:      item.querySelector('.e-next').value.trim() || null,
+            internal_notes:   item.querySelector('.e-internal').value.trim() || null,
+            raw_notes:        item.querySelector('.e-raw').value.trim() || null,
+          }),
+        });
+        if (!res.ok) throw new Error((await res.json()).detail || `Error ${res.status}`);
+        Object.assign(e, {
+          lesson_date:      item.querySelector('.e-date').value,
+          title:            item.querySelector('.e-title').value.trim(),
+          worksheet:        item.querySelector('.e-worksheet').value.trim(),
+          lesson_summary:   item.querySelector('.e-summary').value.trim(),
+          skills_practised: JSON.stringify(skillsList),
+          next_lesson:      item.querySelector('.e-next').value.trim(),
+          internal_notes:   item.querySelector('.e-internal').value.trim(),
+          raw_notes:        item.querySelector('.e-raw').value.trim(),
+        });
+        okEl.classList.remove('hidden');
+        setTimeout(() => okEl.classList.add('hidden'), 2000);
+      } catch (err) {
+        errEl.textContent = err.message;
+        errEl.classList.remove('hidden');
+      }
+    });
+
+    // Archive / unarchive
+    item.querySelector('.btn-entry-archive').addEventListener('click', async () => {
+      const errEl = item.querySelector('.entry-err');
+      try {
+        const newVal = e.archived ? 0 : 1;
+        const res = await fetch(`/api/lessons/${e.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ archived: newVal }),
+        });
+        if (!res.ok) throw new Error((await res.json()).detail || `Error ${res.status}`);
+        e.archived = newVal;
+        if (onRerender) onRerender();
+      } catch (err) {
+        errEl.textContent = err.message;
+        errEl.classList.remove('hidden');
+      }
+    });
+
+    container.appendChild(item);
+  });
 }
 
 $('student-search').addEventListener('input', e => {
@@ -1144,7 +1580,9 @@ $('feedback-search').addEventListener('input', e => {
 // ── Initialise ────────────────────────────────────────────────────────────────
 
 async function init() {
+  initAbout();
   initGuide();
+  initPromptControls();
   switchTab('lesson');
   await fetchStudents();
   refreshLessonPicker();
