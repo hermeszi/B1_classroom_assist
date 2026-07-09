@@ -61,7 +61,7 @@ supported. Tested with OpenRouter, OpenAI, Google Gemini, Groq, Ollama, and Anth
 ## Database Schema
 
 CARE uses a single SQLite file (`data/class_assist.db`). The schema is in
-[`data/schema.sql`](data/schema.sql) and is applied automatically on first run.
+[`src/schema.sql`](src/schema.sql) and is applied automatically on first run.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -247,9 +247,16 @@ Railway offers a small free credit monthly; persistent volumes are supported.
 
 1. Push the repo to GitHub.
 2. Go to [railway.app](https://railway.app) → **New Project → Deploy from GitHub**.
-3. Add environment variables in the **Variables** tab.
-4. Add a **Volume** (mount at `/app/data`) to persist the database.
+3. Add environment variables in the **Variables** tab:
+   - `OPENROUTER_API_KEY` = your key (or set it later via the Settings tab)
+   - `MODEL` = e.g. `openai/gpt-4o-mini` (optional — can be set in the app)
+4. Add a **Volume** and mount it at `/app/data` to persist the SQLite database across deploys.
+   The schema file (`src/schema.sql`) lives inside the app image and is never affected by the volume mount.
 5. Railway auto-detects the Dockerfile and deploys.
+
+> **Why `/app/data` is safe:** `schema.sql` was moved into `src/` in this project, so only the live
+> database file (`class_assist.db`) is ever stored in `data/`. Mounting a volume there cannot
+> hide or overwrite any application files.
 
 ---
 
@@ -296,14 +303,101 @@ Caddy handles HTTPS automatically via Let's Encrypt. Replace
 
 ---
 
+## Managing Your Database
+
+Everything CARE stores — students, lessons, feedback, settings — lives in a single
+file: `data/class_assist.db`. Understanding this file is the key to backups,
+migrations, and recovery.
+
+### Where the file lives
+
+| Deployment | Path on disk |
+|---|---|
+| Local Python | `data/class_assist.db` inside the project folder |
+| Docker (local) | `data/class_assist.db` on your host machine (mounted into the container) |
+| Synology / QNAP NAS | `data/class_assist.db` inside the project folder you copied to the NAS |
+| Railway | Inside the Railway persistent volume at `/app/data/class_assist.db` |
+| VPS | `data/class_assist.db` inside `/opt/care` (or wherever you cloned the repo) |
+
+### Backing up
+
+SQLite is a single file — backing up means copying that file:
+
+```bash
+# Simple backup with a date stamp
+cp data/class_assist.db data/class_assist.db.bak-$(date +%Y%m%d)
+
+# Or copy to a safe location
+cp data/class_assist.db ~/Desktop/care-backup-$(date +%Y%m%d).db
+```
+
+> **When running Docker:** the file is on your **host machine** at `./data/class_assist.db`,
+> not inside the container. Copy it from there — the container does not need to be stopped.
+
+For Railway or other cloud deployments, download the file first:
+```bash
+# Railway CLI (if installed)
+railway run cp /app/data/class_assist.db /tmp/backup.db
+```
+Or use the platform's volume download feature.
+
+### Restoring or moving to a new server
+
+Stop the app, replace the `.db` file, restart:
+
+```bash
+# Local / VPS
+docker compose down
+cp /path/to/backup.db data/class_assist.db
+docker compose up -d
+```
+
+The app runs migrations on startup — your schema is always kept up to date automatically.
+
+### Starting fresh
+
+Delete (or rename) the database file and restart the app — it will recreate the
+database from `src/schema.sql` and load the synthetic seed students:
+
+```bash
+rm data/class_assist.db   # or: mv data/class_assist.db data/class_assist.db.old
+docker compose restart
+```
+
+### How Docker volumes work (plain English)
+
+When you run CARE with Docker, the `docker-compose.yml` contains:
+
+```yaml
+volumes:
+  - ./data:/app/data
+```
+
+This means: **"link the `data/` folder on your computer to `/app/data` inside the container."**
+The database file your computer can see at `./data/class_assist.db` is the exact same file the
+app is reading and writing. They are not two copies — it is one file, shared.
+
+Consequences:
+- Stopping or deleting the container does **not** delete your data.
+- Rebuilding the image (`docker compose up --build`) does **not** delete your data.
+- If you delete `./data/class_assist.db` on your computer, the app loses all its data.
+- Moving the project folder to another machine: bring the `data/` folder with it.
+
+> **Cloud platforms (Railway, Render):** instead of a local folder, the platform provides a
+> "persistent volume" — a network disk that stays attached to your app. It works the same
+> way as the folder link above. Without it, the database is stored inside the container and
+> wiped every time the app redeploys.
+
+---
+
 ## Privacy & Safety
 
 - **First names only** in AI prompts. No surnames, no passwords, no parent contact
   details are ever sent to the AI provider.
-- The committed `data/schema.sql` seed uses **synthetic students only**
-  (`parent@example.test` addresses, invented names).
+- The schema file (`src/schema.sql`) contains **synthetic students only**
+  (`parent@example.test` addresses, invented names) — safe to commit and share.
 - The live database (`data/class_assist.db`) is in `.gitignore` and is never
-  committed.
+  committed — it stays on your server only.
 - `GET /api/settings` never returns the stored API key — only a boolean
   `api_key_set: true/false`.
 - Feedback tokens are one-time UUIDs. There is no login for students submitting
@@ -319,13 +413,14 @@ Caddy handles HTTPS automatically via Let's Encrypt. Replace
 │   ├── database.py      SQLite helpers + migrations
 │   ├── ai_service.py    AI call + retry logic; supports OpenAI-compatible + Anthropic native
 │   ├── prompts.py       Default system prompt + output contract (REQUIRED_KEYS, validate_report)
+│   ├── schema.sql       Full DB schema + synthetic seed — lives in src/ so volume mounts never hide it
 │   └── static/
 │       ├── index.html   Single-page app (4 tabs: Lesson · Students · Feedback · Settings)
 │       ├── app.js       Vanilla JS — no build step; PROMPT_PRESETS for SG context
 │       ├── feedback.html Student-facing feedback form (star rating + comments)
 │       └── biosite.png  Developer contact QR code (shown in About popover)
 ├── data/
-│   ├── schema.sql       Full schema + synthetic seed data
+│   ├── .gitkeep         Keeps the data/ directory tracked by git (db file is gitignored)
 │   └── class_assist.db  Live database — gitignored
 ├── tests/
 │   └── test_ai_contract.py  Contract tests (pytest) — run with: pytest -q

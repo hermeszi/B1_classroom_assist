@@ -13,7 +13,8 @@ The app is named **CARE** — Classroom AI for Reports & Engagement.
 
 ## Stack (do not change without asking)
 - Backend: FastAPI + uvicorn (Python 3.12)
-- DB: SQLite (stdlib sqlite3), file at data/class_assist.db, schema in data/schema.sql
+- DB: SQLite (stdlib sqlite3), file at data/class_assist.db (override with DB_PATH env var),
+  schema in src/schema.sql (moved from data/ so volume mounts never hide it)
 - Frontend: single src/static/index.html + app.js, vanilla JS, NO build step. Tailwind via CDN.
 - LLM: multi-provider. Primary: OpenRouter (OpenAI-compatible). Also supports OpenAI,
   Google Gemini, Groq, Anthropic native API, Ollama. Key in env OPENROUTER_API_KEY,
@@ -21,7 +22,7 @@ The app is named **CARE** — Classroom AI for Reports & Engagement.
 - Email: preview + copy only. NEVER send a real email.
 
 ## Contracts (source of truth — implement AGAINST these, do not redefine)
-- DB shape: data/schema.sql
+- DB shape: src/schema.sql  ← lives in src/ so volume mounts over data/ can never hide it
 - AI output shape + validator: src/prompts.py (SYSTEM_PROMPT, REQUIRED_KEYS, validate_report)
 - Tests that must pass: tests/test_ai_contract.py  ->  run `pytest -q`
 
@@ -235,3 +236,13 @@ Extended the app with three major feature areas requested by the user:
 - CARE title: `text-base` → `text-lg`
 - Export All dropdown in Students tab: parent card given `overflow-visible` to stop the
   dropdown being clipped by the `.card`'s `overflow-hidden`
+
+**Railway / Docker deployment fix**
+- Moved `data/schema.sql` → `src/schema.sql`; updated `_SCHEMA_PATH` in `database.py`
+- Root cause: any volume mount over `/app/data` (Railway, Docker, etc.) hides ALL files
+  in that directory, including schema.sql, causing a FileNotFoundError on startup
+- Fix: schema is source code, not data — it belongs in `src/` where no volume touches it
+- `_DB_PATH` now also reads `DB_PATH` env var (fallback to `data/class_assist.db`)
+- `data/.gitkeep` added so the directory is tracked by git with no other committed files
+- README updated with a full "Managing Your Database" section: backup, restore, Docker
+  volume explanation in plain English, cloud volume notes for Railway/Render

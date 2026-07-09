@@ -6,8 +6,8 @@ from datetime import date, datetime
 
 _SRC_DIR = os.path.dirname(__file__)
 _PROJECT_ROOT = os.path.dirname(_SRC_DIR)
-_DB_PATH = os.path.join(_PROJECT_ROOT, "data", "class_assist.db")
-_SCHEMA_PATH = os.path.join(_PROJECT_ROOT, "data", "schema.sql")
+_DB_PATH = os.environ.get("DB_PATH") or os.path.join(_PROJECT_ROOT, "data", "class_assist.db")
+_SCHEMA_PATH = os.path.join(_SRC_DIR, "schema.sql")  # lives in src/ — never under a data volume
 
 _STUDENT_COLS = (
     "id", "name", "age", "level", "login",
