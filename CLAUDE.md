@@ -48,7 +48,7 @@ The app is named **CARE** — Classroom AI for Reports & Engagement.
   student_phone, profile_notes, active
 - lesson_entries: id, student_id, instructor_id, lesson_date, created_at,
   title, general_lesson, worksheet, raw_notes, lesson_summary, skills_practised,
-  next_lesson, internal_notes
+  next_lesson, internal_notes, archived
 - student_feedback: id, lesson_entry_id, student_id, token (unique UUID hex),
   submitted_at, rating, comments, created_at
 - settings: key, value
@@ -180,3 +180,58 @@ Extended the app with three major feature areas requested by the user:
   6 deployment guides (local Python, Docker, Synology NAS, QNAP, Render, Railway,
   VPS + Caddy HTTPS), provider comparison table, privacy notes
 - `Dockerfile` — fixed port 8000 → 8001 to match docker-compose.yml
+
+---
+
+### Session 5 — Lesson history editing, system prompt presets, UI polish
+**Model used:** Claude Sonnet 4.6 via Claude Code CLI
+
+**Lesson history in Students tab**
+- "Lessons" labelled button (sky-blue pill) per student card replaces the small clock icon
+- Clicking expands a lessons panel inline: all lesson entries for that student, newest first
+- Each entry: collapsible header (date + headline + archived badge + summary preview)
+- Expanded entry: inline edit form for all fields (date, title, worksheet, summary, skills,
+  next lesson, internal notes, raw notes); Save button calls `PUT /api/lessons/{id}`
+- Archive / Unarchive button flips `archived` flag; `onRerender` callback refreshes the list
+- `lesson_entries.archived` column added (INTEGER NOT NULL DEFAULT 0); migration in init_db()
+- `GET /api/students/{id}/history` already returned `archived` and all feedback columns
+- New DB function `update_lesson_entry(entry_id, fields)` with allowlist; new route
+  `PUT /api/lessons/{entry_id}` (UpdateLessonEntryRequest)
+- `get_lesson_entry(entry_id)` helper added for the PUT pre-check
+- "Show archived" checkbox per student card; `onRerender` callback pattern for re-render
+
+**Student feedback visible in lesson history**
+- Each expanded lesson entry in the Students tab now shows a "⭐ Student Feedback" section
+- Reuses `renderFeedbackStatus(el, e)`: shows submitted rating/comments, pending link, or
+  a "Get Feedback Link" button that creates a token inline — identical to the Feedback tab
+
+**Header links**
+- "Survey" pill button (violet, upper-right) links to Google Form for CARE user feedback
+  (hidden on narrow screens via `sm:hidden`)
+- Person-icon button opens an About popover: QR code (`src/static/biosite.png`),
+  "Built by Ming", `bio.site/mingde` link, and the Survey link on mobile
+- Popover closes on any click outside (document click listener)
+- `initAbout()` function in app.js wires up toggle and outside-click dismiss
+
+**System prompt UX overhaul**
+- Textarea now always shows the active prompt — built-in default (`PROMPT_PRESETS.general`)
+  when no custom value is in DB, or the saved custom value; no longer appears empty
+- Lock/unlock checkbox: textarea is `readonly` by default; user must tick "Unlock to edit"
+  before typing — prevents accidental edits
+- Badge in section header: grey "default (built-in)" or violet "custom"
+- 3 Singapore-context preset buttons that populate the textarea and auto-unlock for review:
+  - **General enrichment** — the current SYSTEM_PROMPT style; for coding/activity centres
+  - **Primary (P1–P6)** — child-friendly language, PSLE curriculum reference, fun focus
+  - **Secondary / tuition (Sec 1–5)** — academic tone, O/N-Level exam context, syllabus codes
+- "Reset to default now" button restores General preset and marks it for DB clear on save
+- Save logic: if the textarea content equals the built-in default, sends `null` to the DB
+  (keeping the DB clean so the Python fallback in `prompts.py` stays authoritative)
+- `PROMPT_PRESETS` constant object at the top of `app.js` holds all three prompts
+- `initPromptControls()` wires up lock toggle, preset buttons, and reset; called from `init()`
+- `setPromptDisplay(customPrompt)` used by `loadSettings()` to populate and re-lock textarea
+
+**UI polish**
+- Global font size bump via tailwind.config block: `text-sm` 14 → 15 px, `text-xs` 12 → 13 px
+- CARE title: `text-base` → `text-lg`
+- Export All dropdown in Students tab: parent card given `overflow-visible` to stop the
+  dropdown being clipped by the `.card`'s `overflow-hidden`

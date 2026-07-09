@@ -34,12 +34,13 @@ skip. Each write-up drops from ~5–8 minutes to roughly a minute of review and 
 | **AI report generation** | lesson summary · skills · next lesson · internal notes |
 | **Multi-student lesson** | tick any number of students; one AI call generates a shared report, saved individually |
 | **Student feedback links** | one-time URLs sent to students for star rating + comments |
-| **Feedback in history** | student responses appear in lesson history and are fed back into future AI prompts |
+| **Feedback in history** | student responses visible in both the Feedback tab and the per-student lesson history in the Students tab |
 | **Multi-provider AI** | OpenRouter · OpenAI · Google Gemini · Anthropic (Claude) · Groq · Ollama · Custom |
 | **Voice dictation** | mic button via Web Speech API |
 | **Student records** | add · edit · deactivate · re-activate · import/export CSV/TSV/JSON |
-| **Lesson history** | per-student, newest first, with skills tags and feedback |
-| **Customisable prompt** | edit the AI system prompt from the Settings tab |
+| **Lesson history & editing** | per-student expandable history in the Students tab; inline edit all fields; archive/unarchive entries |
+| **System prompt presets** | built-in presets for General enrichment, Primary (P1–P6), and Secondary/tuition (Sec 1–5) — Singapore context |
+| **Prompt lock** | system prompt is locked by default; must explicitly unlock to edit, preventing accidental changes |
 | **Self-hosted** | SQLite database, no external services required |
 
 ---
@@ -98,6 +99,9 @@ CARE uses a single SQLite file (`data/class_assist.db`). The schema is in
 - **`lesson_entries.title` and `general_lesson`** are set once per teaching session
   (e.g. "Introduction to Loops") and shared across all students taught that day —
   saving typing when a whole class did the same activity.
+- **`lesson_entries.archived`** soft-hides old or irrelevant lesson entries. Archived
+  entries are excluded from the default view; toggle "Show archived" per student card
+  in the Students tab.
 - **`student_feedback.token`** is a one-time UUID hex string. Generating a second
   link for the same lesson entry creates a new row (multiple links can exist; the
   history view shows the most recently created one).
@@ -105,7 +109,8 @@ CARE uses a single SQLite file (`data/class_assist.db`). The schema is in
   but all historical records are preserved. Toggle "Show deactivated students" in the
   Students tab to find and reactivate them.
 - **`settings`** table overrides environment variables at runtime — anything you save
-  through the Settings tab takes priority over `.env`.
+  through the Settings tab takes priority over `.env`. If `system_prompt` is not set
+  in the DB, the built-in default in `src/prompts.py` is used automatically.
 
 ---
 
@@ -282,8 +287,9 @@ Caddy handles HTTPS automatically via Let's Encrypt. Replace
 - [ ] Copy `.env.example` → `.env` and set your API key (or enter it in the Settings tab)
 - [ ] Open the app → **Settings tab** → choose your AI provider and model
 - [ ] Add your students in the **Students tab** (or import a CSV)
-- [ ] Customise the AI system prompt in **Settings** if needed (e.g. change subject
-      references from "coding" to your centre's focus)
+- [ ] Customise the AI system prompt in **Settings** if needed — pick a preset
+      (General enrichment / Primary / Secondary) or write your own; unlock the textarea
+      first by ticking the checkbox
 - [ ] Try a test lesson: select a student → fill notes → Generate → Save
 
 ---
@@ -310,11 +316,12 @@ Caddy handles HTTPS automatically via Let's Encrypt. Replace
 │   ├── main.py          FastAPI routes (students, lessons, settings, feedback)
 │   ├── database.py      SQLite helpers + migrations
 │   ├── ai_service.py    AI call + retry logic; supports OpenAI-compatible + Anthropic native
-│   ├── prompts.py       System prompt + output contract (REQUIRED_KEYS, validate_report)
+│   ├── prompts.py       Default system prompt + output contract (REQUIRED_KEYS, validate_report)
 │   └── static/
 │       ├── index.html   Single-page app (4 tabs: Lesson · Students · Feedback · Settings)
-│       ├── app.js       Vanilla JS — no build step
-│       └── feedback.html Student-facing feedback form (star rating + comments)
+│       ├── app.js       Vanilla JS — no build step; PROMPT_PRESETS for SG context
+│       ├── feedback.html Student-facing feedback form (star rating + comments)
+│       └── biosite.png  Developer contact QR code (shown in About popover)
 ├── data/
 │   ├── schema.sql       Full schema + synthetic seed data
 │   └── class_assist.db  Live database — gitignored
@@ -353,3 +360,16 @@ The contract tests mock `_call_model` so no real API key is needed.
 > Direct Anthropic API (`api.anthropic.com`) uses a different request/response
 > format. CARE detects this automatically and switches formats — no manual
 > configuration needed.
+
+---
+
+## About
+
+Built by **Ming** — [bio.site/mingde](https://bio.site/mingde)
+
+CARE was started as a 42 SG B1 Builders submission and developed entirely using
+[Claude Code](https://claude.ai/code) (Claude Sonnet 4.6 via the Claude Code CLI).
+Every session is logged in [CLAUDE.md](CLAUDE.md).
+
+Feedback on the app itself: use the **Survey** button inside CARE, or open the
+[feedback form](https://docs.google.com/forms/d/e/1FAIpQLSd1yV1G2-gT59rD1IjmfRQ7cdvb_7PfO30cAzYJBsOO1G9jmQ/viewform?usp=header) directly.
