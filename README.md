@@ -10,13 +10,11 @@
 
 ## The Problem
 
-In schools and enrichment centres, instructors have to write a per-student update after every lesson:
-a parent-facing summary, skills practised, the next lesson plan, and internal handover
-notes for the next instructor. It is difficult to write meaningful updates within the work hours.
+In schools and enrichment centres, instructors often have to write student updates after lessons: a parent-facing summary, skills practised, the next lesson plan, and internal handover notes for the next instructor....
+It is difficult to write meaningful updates within reasonable hours.
 
-**CARE** fixes that. Enter a worksheet name and a few rough notes → the AI writes the
-full summary in the centre's house style and fills every field that instructors normally
-skip. Each write-up drops from ~5–8 minutes to roughly a minute of review and editing.
+**CARE** allows educators to enter a worksheet name and a few rough notes → the AI writes the full summary in the centre's house style and fills every field that instructors normally skip. 
+Each write-up drops from ~5–8 minutes to roughly a minute of review and editing.
 
 ---
 
