@@ -19,7 +19,7 @@ Each write-up drops from ~5–8 minutes to roughly a minute of review and editin
 ---
 
 ## Demo
-[LIVE Demo](https://b1classroomassist-production.up.railway.app/)
+[>>>>>LIVE Demo<<<<<<](https://b1classroomassist-production.up.railway.app/)
 
 [YouTube OUTDATED](https://youtu.be/MUnVXtHYfys)
 
