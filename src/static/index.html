@@ -193,23 +193,23 @@
           <div class="grid gap-2.5">
             <div class="flex items-start gap-3">
               <span class="w-6 h-6 bg-amber-100 text-amber-700 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</span>
-              <p class="text-sm text-gray-700"><strong class="text-amber-700">Set today's lesson</strong> — type the topic (e.g. "Variables") and a brief description of what you covered with the whole class. This is optional but helps the AI write better summaries.</p>
+              <p class="text-sm text-gray-700"><strong class="text-amber-700">Optional - Today's lesson</strong> - type the topic (e.g. "Prime Numbers, Colour Theory...") and a brief description of what you covered with the whole class. This is optional but helps the AI write better summaries.</p>
             </div>
             <div class="flex items-start gap-3">
               <span class="w-6 h-6 bg-indigo-100 text-indigo-700 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</span>
-              <p class="text-sm text-gray-700"><strong class="text-indigo-700">Select student(s)</strong> — tick one student, or tick several at once if you taught a group together.</p>
+              <p class="text-sm text-gray-700"><strong class="text-indigo-700">Select student(s)</strong> - tick one student, or tick several at once if you taught a group together.</p>
             </div>
             <div class="flex items-start gap-3">
               <span class="w-6 h-6 bg-teal-100 text-teal-700 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</span>
-              <p class="text-sm text-gray-700"><strong class="text-teal-700">Add quick notes</strong> — a few words is enough. What did the student do? Any challenges or achievements? You can also dictate using the mic button.</p>
+              <p class="text-sm text-gray-700"><strong class="text-teal-700">Add quick notes</strong> - a few words is enough. Any observations? What did the student do? Any challenges or achievements? You can also dictate using the mic button.</p>
             </div>
             <div class="flex items-start gap-3">
               <span class="w-6 h-6 bg-violet-100 text-violet-700 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">4</span>
-              <p class="text-sm text-gray-700"><strong class="text-violet-700">Generate &amp; Save</strong> — the AI writes the full parent-facing summary. Review it, edit if needed, then Save to keep it on the student's record.</p>
+              <p class="text-sm text-gray-700"><strong class="text-violet-700">Generate &amp; Save</strong> - the AI writes the full summary. Review it, edit if needed, then Save to keep it on the student's record.</p>
             </div>
             <div class="flex items-start gap-3">
               <span class="w-6 h-6 bg-sky-100 text-sky-700 rounded-lg flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">5</span>
-              <p class="text-sm text-gray-700"><strong class="text-sky-700">Optional — get student feedback</strong> — after saving, CARE shows a link you can share with the student. They rate the lesson (1–5 stars) and their feedback is used to improve future summaries.</p>
+              <p class="text-sm text-gray-700"><strong class="text-sky-700">Optional - get student feedback</strong> - after saving, CARE shows a link you can share with the student. They rate the lesson (1–5 stars) and their feedback is used to improve future summaries.</p>
             </div>
           </div>
           <p class="text-xs text-gray-400 pt-2 border-t border-gray-100">
@@ -228,14 +228,14 @@
             </svg>
           </div>
           <div>
-            <p class="text-sm font-semibold text-amber-900">Today's Lesson</p>
-            <p class="text-xs text-amber-600">Shared across all students this session — set once, stays put</p>
+            <p class="text-sm font-semibold text-amber-900">Optional - Today's Lesson</p>
+            <p class="text-xs text-amber-600">Shared across all students this session - stays put till edited</p>
           </div>
         </div>
         <div class="p-5 space-y-4">
           <div>
             <label for="lesson-title" class="field-label">Lesson Title</label>
-            <p class="field-hint">e.g. "Introduction to Loops", "Game Design — Day 2"</p>
+            <p class="field-hint">e.g. "Introduction to Trigonometry", "Game Design - Day 2"</p>
             <input id="lesson-title" type="text" placeholder="What's today's main topic?" class="input-field" />
           </div>
           <div>
@@ -259,7 +259,7 @@
           </div>
           <div>
             <p class="text-sm font-semibold text-indigo-900">Students</p>
-            <p class="text-xs text-indigo-600">Tick one or more — tick several for a group lesson</p>
+            <p class="text-xs text-indigo-600">Tick one or more - tick several for a group lesson</p>
           </div>
         </div>
         <div class="p-4 space-y-3">
@@ -303,7 +303,7 @@
           </div>
           <div>
             <p class="text-sm font-semibold text-teal-900">Student Notes</p>
-            <p class="text-xs text-teal-600">Notes specific to this student or group today</p>
+            <p class="text-xs text-teal-600">Notes specific to this student or group</p>
           </div>
         </div>
         <div class="p-5 space-y-4">
@@ -314,8 +314,8 @@
                 class="rounded-xl border border-gray-300 bg-gray-50 px-3 py-2.5 text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-colors" />
             </div>
             <div class="flex-1 space-y-1.5">
-              <label for="worksheet" class="field-label">Worksheet / Project Name</label>
-              <input id="worksheet" type="text" placeholder="e.g. Scratch Dino Run, Python Calculator" class="input-field" />
+              <label for="worksheet" class="field-label">Worksheet / Project / Activity</label>
+              <input id="worksheet" type="text" placeholder="e.g. Python Calculator, Creative Writing" class="input-field" />
             </div>
           </div>
           <div>
@@ -331,7 +331,7 @@
               </button>
             </div>
             <textarea id="notes" rows="4"
-              placeholder="Jot down rough notes — what the student worked on, challenges, breakthroughs… a few words is enough"
+              placeholder="Jot down rough notes — what the student worked on, observations, interaction, challenges… a few words is enough"
               class="input-field resize-y"></textarea>
           </div>
         </div>
@@ -379,7 +379,7 @@
           </div>
           <div>
             <p class="text-sm font-semibold text-emerald-900">Generated Report</p>
-            <p class="text-xs text-emerald-600">Review and edit before saving — all fields are editable</p>
+            <p class="text-xs text-emerald-600">Review and edit before saving - all fields are editable</p>
           </div>
         </div>
         <div class="p-5 space-y-5">
@@ -387,15 +387,15 @@
           <div>
             <label class="field-label">
               📝 Lesson Summary
-              <span class="text-gray-400 font-normal text-xs ml-1">(sent to parents)</span>
+              <span class="text-gray-400 font-normal text-xs ml-1">(can be sent to parents)</span>
             </label>
-            <p class="field-hint">Warm, parent-friendly description of what happened today</p>
+            <p class="field-hint">Description of what happened today</p>
             <textarea id="field-lesson-summary" rows="7" class="input-field resize-y"></textarea>
           </div>
 
           <div>
             <label class="field-label">🎯 Skills Practised</label>
-            <p class="field-hint">Comma-separated — edit or add more</p>
+            <p class="field-hint">Comma-separated - edit or add more</p>
             <textarea id="field-skills" rows="2" class="input-field resize-y"></textarea>
           </div>
 
@@ -443,7 +443,7 @@
           </div>
           <div>
             <p class="text-sm font-semibold text-sky-900">Student Feedback Links</p>
-            <p class="text-xs text-sky-600">Optional — share with students to collect their rating of today's lesson</p>
+            <p class="text-xs text-sky-600">Optional - share with students to collect their rating of today's lesson</p>
           </div>
         </div>
         <div id="post-save-feedback-list" class="p-4 space-y-2.5"></div>
