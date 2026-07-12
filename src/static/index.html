@@ -16,13 +16,13 @@
   <!-- Open Graph (WhatsApp, Telegram, LinkedIn, Facebook previews) -->
   <meta property="og:type"        content="website" />
   <meta property="og:title"       content="CARE — Classroom AI for Reports &amp; Engagement" />
-  <meta property="og:description" content="Turn rough lesson notes into polished parent-facing summaries in seconds. Self-hosted, multi-provider AI, SQLite — no external services required." />
+  <meta property="og:description" content="Turn rough lesson notes into polished summaries in seconds. Self-hosted, multi-provider AI, SQLite." />
   <meta property="og:locale"      content="en_SG" />
 
   <!-- Twitter / X card -->
   <meta name="twitter:card"        content="summary" />
   <meta name="twitter:title"       content="CARE — Classroom AI for Reports &amp; Engagement" />
-  <meta name="twitter:description" content="Turn rough lesson notes into polished parent-facing summaries in seconds. Self-hosted, multi-provider AI." />
+  <meta name="twitter:description" content="Turn rough lesson notes into polished summaries in seconds. Self-hosted, multi-provider AI, SQLite." />
 
   <!-- Emoji favicon — no file needed -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>" />
@@ -63,6 +63,13 @@
       @apply inline-flex items-center gap-2 border border-gray-300 hover:bg-gray-50
              text-gray-700 text-sm font-semibold px-4 py-2.5 rounded-xl transition;
     }
+    @keyframes survey-glow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
+      50%       { box-shadow: 0 0 0 6px rgba(139, 92, 246, 0); }
+    }
+    .btn-survey-glow {
+      animation: survey-glow 2.4s ease-in-out infinite;
+    }
     .tab-btn {
       @apply flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition;
     }
@@ -96,7 +103,7 @@
         <!-- Feedback link -->
         <a href="https://docs.google.com/forms/d/e/1FAIpQLSd1yV1G2-gT59rD1IjmfRQ7cdvb_7PfO30cAzYJBsOO1G9jmQ/viewform?usp=header"
           target="_blank" rel="noopener"
-          class="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-violet-600 bg-violet-50 hover:bg-violet-100 border border-violet-200 px-2.5 py-1.5 rounded-xl transition whitespace-nowrap">
+          class="btn-survey-glow hidden sm:flex items-center gap-1.5 text-xs font-semibold text-white bg-violet-500 hover:bg-violet-600 border border-violet-400 px-2.5 py-1.5 rounded-xl transition whitespace-nowrap">
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -321,14 +328,17 @@
           <div>
             <div class="flex items-center justify-between mb-1.5">
               <label for="notes" class="field-label">Lesson Notes</label>
-              <button id="btn-mic" title="Click to start/stop voice dictation"
-                class="inline-flex items-center gap-1.5 border border-gray-300 hover:bg-gray-50 text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg transition">
-                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                </svg>
-                <span id="mic-label">Dictate</span>
-              </button>
+              <div class="flex items-center gap-2">
+                <button id="btn-mic" title="Click to start/stop voice dictation"
+                  class="inline-flex items-center gap-1.5 border border-gray-300 hover:bg-gray-50 text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg transition">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  </svg>
+                  <span id="mic-label">Dictate</span>
+                </button>
+                <span class="text-xs text-gray-400" title="Web Speech API is supported in Chrome and Edge; not available in Firefox or Safari">Chrome / Edge only</span>
+              </div>
             </div>
             <textarea id="notes" rows="4"
               placeholder="Jot down rough notes — what the student worked on, observations, interaction, challenges… a few words is enough"
@@ -462,7 +472,7 @@
     ════════════════════════════════════════════════════════════════════ -->
     <div id="tab-students" class="hidden space-y-4">
 
-      <div class="card p-4 overflow-visible">
+      <div class="card p-4 !overflow-visible">
         <div class="flex items-center gap-3 flex-wrap">
           <div class="relative flex-1 min-w-48">
             <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
@@ -492,7 +502,7 @@
               </svg>
             </button>
             <div id="export-all-menu"
-              class="hidden absolute right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-10 overflow-hidden w-28">
+              class="hidden absolute right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden w-28">
               <button data-format="csv"  class="export-all-opt w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 text-gray-700">CSV</button>
               <button data-format="tsv"  class="export-all-opt w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 text-gray-700 border-t border-gray-100">TSV</button>
               <button data-format="json" class="export-all-opt w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 text-gray-700 border-t border-gray-100">JSON</button>
@@ -777,6 +787,28 @@
     </div><!-- /tab-settings -->
 
   </div>
+
+  <!-- ── Footer ──────────────────────────────────────────────────────────── -->
+  <footer class="max-w-2xl mx-auto px-4 pb-6 pt-2 flex items-center justify-between gap-4 flex-wrap text-xs text-gray-400">
+    <span>© 2026 <a href="https://bio.site/mingde" target="_blank" rel="noopener" class="hover:text-indigo-500 transition">Ming</a> — MIT License</span>
+    <span class="flex items-center gap-3">
+      <a href="https://github.com/hermeszi/B1_classroom_assist" target="_blank" rel="noopener"
+        class="flex items-center gap-1 hover:text-gray-700 transition">
+        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483
+            0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608
+            1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338
+            -2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65
+            0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844a9.59 9.59 0 012.504.337c1.909-1.296 2.747-1.027
+            2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566
+            4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02
+            0 0022 12.017C22 6.484 17.522 2 12 2z" />
+        </svg>
+        GitHub
+      </a>
+      <a href="mailto:myuen@42mail.sutd.edu.sg" class="hover:text-indigo-500 transition">Email Ming</a>
+    </span>
+  </footer>
 
   <script src="app.js"></script>
 </body>
