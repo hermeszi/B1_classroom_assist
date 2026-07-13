@@ -21,7 +21,9 @@ Each write-up drops from ~5–8 minutes to roughly a minute of review and editin
 ## Demo
 [>>> CARE Demo online <<<](https://b1classroomassist-production.up.railway.app/)
 
-[![Watch the CARE Overview Video](https://youtube.com)](https://youtu.be)
+<a href="https://youtu.be/Kp8dMOtGWkk?si=gydx7yuNQkHScb0M" target="_blank">
+  <img src="https://youtube.com" alt="Watch the CARE Overview Video" width="100%" />
+</a>
 
 <img width="1211" height="1008" alt="image" src="https://github.com/user-attachments/assets/bde322d5-552a-40c0-b04a-d58753c2d37e" />
 
